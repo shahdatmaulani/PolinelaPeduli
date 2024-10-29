@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="12dp"/> <!-- Mengatur sudut menjadi melengkung -->
+    <solid android:color="@android:color/white"/> <!-- Latar belakang warna putih -->
+    <stroke
+        android:width="3dp"
+        android:color="#04454D"/> <!-- Border tipis berwarna sherpa blue -->
+</shape>

@@ -1,0 +1,140 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/pic8"
+    tools:context=".MainActivity">
+
+    <!-- Linear Layout for Images arranged in Grid -->
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        android:layout_marginTop="32dp"
+        android:padding="16dp">
+
+        <!-- Image 1 -->
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_columnWeight="1"
+            android:src="@drawable/pic1"
+            android:scaleType="centerCrop"
+            android:layout_margin="8dp"
+            android:background="@drawable/image_border" />
+
+        <!-- Image 2 -->
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_columnWeight="1"
+            android:src="@drawable/pic2"
+            android:scaleType="centerCrop"
+            android:layout_margin="8dp"
+            android:background="@drawable/image_border" />
+
+        <!-- Image 3 -->
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_columnWeight="1"
+            android:src="@drawable/pic3"
+            android:scaleType="centerCrop"
+            android:layout_margin="8dp"
+            android:background="@drawable/image_border" />
+
+        <!-- Image 4 -->
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_columnWeight="1"
+            android:src="@drawable/pic4"
+            android:scaleType="centerCrop"
+            android:layout_margin="8dp"
+            android:background="@drawable/image_border" />
+
+        <!-- Image 5 -->
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_columnWeight="1"
+            android:src="@drawable/pic6"
+            android:scaleType="centerCrop"
+            android:layout_margin="8dp"
+            android:background="@drawable/image_border" />
+
+        <!-- Image 6 -->
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_columnWeight="1"
+            android:src="@drawable/pic7"
+            android:scaleType="centerCrop"
+            android:layout_margin="8dp"
+            android:background="@drawable/image_border" />
+
+    </GridLayout>
+
+    <!-- Welcome Text -->
+    <!-- Text "Welcome to" with Improved Style -->
+    <TextView
+        android:id="@+id/welcomeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to"
+        android:textSize="36sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        android:shadowColor="#FF000000"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="3"
+        android:letterSpacing="0.1"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="16dp" />
+
+    <!-- Text "PolinelaPeduli" with Improved Style -->
+    <TextView
+        android:id="@+id/polinelaText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PolinelaPeduli"
+        android:textSize="40sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-condensed"
+        android:shadowColor="#FF000000"
+        android:shadowDx="3"
+        android:shadowDy="3"
+        android:shadowRadius="4"
+        android:letterSpacing="0.15"
+        android:layout_marginTop="0dp"
+        android:layout_marginStart="16dp" />
+
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/subtitleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bergabunglah dalam misi untuk menolong sesama"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="15dp"
+        android:layout_gravity="center" />
+
+    <!-- Get Started Button -->
+    <Button
+        android:id="@+id/signInButton"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="Sign In"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/green"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center" />
+
+</LinearLayout>

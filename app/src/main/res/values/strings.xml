@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">PolinelaPeduli</string>
+    <string-array name="metode_pembayaran">
+        <item>Pilih Metode Pembayaran</item>
+        <item>GoPay</item>
+        <item>ShopeePay</item>
+        <item>DANA</item>
+        <item>Transfer Bank BCA</item>
+        <item>Transfer Bank BNI</item>
+        <item>Transfer Bank BRI</item>
+    </string-array>
+</resources>

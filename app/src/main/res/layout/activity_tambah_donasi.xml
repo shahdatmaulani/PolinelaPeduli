@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Judul Form -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tambah Donasi"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:paddingBottom="16dp"/>
+
+        <!-- Field Nama Donasi -->
+        <EditText
+            android:id="@+id/etNamaDonasi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nama Donasi"
+            android:minHeight="48dp"
+            android:padding="12dp"/>
+
+        <!-- Field Deskripsi Donasi -->
+        <EditText
+            android:id="@+id/etDeskripsiDonasi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Deskripsi Donasi"
+            android:inputType="textMultiLine"
+            android:minLines="3"
+            android:minHeight="48dp"
+            android:padding="12dp" />
+
+        <!-- Field Target Donasi -->
+        <EditText
+            android:id="@+id/etTargetDonasi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Target Donasi"
+            android:inputType="number"
+            android:minHeight="48dp"
+            android:padding="12dp" />
+
+        <!-- Pilihan Kategori dengan Radio Group -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pilih Kategori:"
+            android:paddingTop="12dp"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroupKategori"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/rbBencana"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bencana" />
+
+            <RadioButton
+                android:id="@+id/rbPendidikan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pendidikan" />
+
+            <RadioButton
+                android:id="@+id/rbKesehatan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kesehatan" />
+
+            <RadioButton
+                android:id="@+id/rbKemanusiaan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kemanusiaan" />
+
+        </RadioGroup>
+
+        <!-- Label untuk Upload Foto -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload Foto"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp" />
+
+        <!-- ImageView untuk Menampilkan Gambar yang Dipilih -->
+        <ImageView
+            android:id="@+id/imageViewDonasi"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="@android:color/darker_gray"
+            android:scaleType="centerCrop"
+            android:layout_marginTop="8dp" />
+
+        <!-- Tombol untuk Memilih Gambar dari Galeri -->
+        <Button
+            android:id="@+id/btnPilihGambar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose File"
+            android:layout_marginTop="16dp"
+            android:minHeight="48dp"
+            android:minWidth="150dp"
+            android:padding="12dp"/>
+
+        <!-- Tampilan untuk menunjukkan apakah file sudah dipilih -->
+        <TextView
+            android:id="@+id/tvStatusGambar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No file chosen"
+            android:layout_marginTop="8dp" />
+
+        <!-- Tombol Simpan -->
+        <Button
+            android:id="@+id/btnSimpanDonasi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simpan Donasi"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</ScrollView>

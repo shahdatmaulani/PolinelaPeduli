@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".HomeActivity">
+
+    <!-- Header -->
+    <TextView
+        android:id="@+id/headerWelcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome, Nama Pengguna!"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/search_field_backgroud"
+        android:padding="0dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@id/headerWelcome"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent="0.85">
+
+        <!-- Icon Pencarian -->
+        <ImageView
+            android:id="@+id/searchIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/pic12"
+            android:contentDescription="Search Icon"
+            android:layout_gravity="center_vertical" />
+
+        <!-- Kolom Pencarian -->
+        <EditText
+            android:id="@+id/searchField"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Cari Donasi..."
+            android:paddingStart="8dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:minHeight="48dp"
+            android:inputType="text"
+            android:background="@android:color/transparent"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:maxLines="1" />
+
+    </LinearLayout>
+
+
+    <!-- Banner  -->
+    <ImageView
+        android:id="@+id/bannerImage"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:src="@drawable/pic1"
+        android:scaleType="centerCrop"
+        android:layout_marginTop="75dp"
+        android:contentDescription="Banner Kampanye"
+        app:layout_constraintTop_toBottomOf="@id/headerWelcome"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Kategori Kampanye -->
+    <TextView
+        android:id="@+id/kategoriTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kategori Donasi"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/bannerImage"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Kategori Donasi dalam Grid -->
+    <GridLayout
+        android:id="@+id/kategoriGrid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:columnCount="2"
+        android:rowCount="2"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/kategoriTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Kategori 1: Bencana -->
+        <LinearLayout
+            android:id="@+id/kategoriBencana"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:gravity="center"
+            android:layout_columnWeight="1">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/pic13"
+                android:contentDescription="Bencana Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bencana"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <!-- Kategori 2: Pendidikan -->
+        <LinearLayout
+            android:id="@+id/kategoriPendidikan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:gravity="center"
+            android:layout_columnWeight="1">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/pic14"
+                android:contentDescription="Pendidikan Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pendidikan"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <!-- Kategori 3: Kesehatan -->
+        <LinearLayout
+            android:id="@+id/kategoriKesehatan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:gravity="center"
+            android:layout_columnWeight="1">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:contentDescription="Kesehatan Icon"
+                android:src="@drawable/pic15" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kesehatan"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <!-- Kategori 4: Kemanusiaan -->
+        <LinearLayout
+            android:id="@+id/kategoriKemanusiaan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:gravity="center"
+            android:layout_columnWeight="1">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:contentDescription="Kemanusiaan Icon"
+                android:src="@drawable/pic19" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kemanusiaan"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+    </GridLayout>
+
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="?android:attr/windowBackground"
+        android:padding="16dp"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Home Button -->
+        <LinearLayout
+            android:id="@+id/homeButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/pic16"
+                android:contentDescription="Home Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home"
+                android:textSize="12sp"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <!-- Donasi Button -->
+        <LinearLayout
+            android:id="@+id/donasiButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/pic17"
+                android:contentDescription="Campaigns Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tambah Donasi"
+                android:textSize="12sp"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <!-- Profile Button -->
+        <LinearLayout
+            android:id="@+id/profileButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/pic18"
+                android:contentDescription="Profile Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Profile"
+                android:textSize="12sp"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
