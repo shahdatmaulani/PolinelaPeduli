@@ -1,6 +1,7 @@
 package com.example.polinelapeduli;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -11,14 +12,15 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.polinelapeduli.utils.UserUtils;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeActivity extends AppCompatActivity {
 
     private TextView headerWelcome;
     private EditText searchField;
-    private ImageView searchIcon, bannerImage;
     private LinearLayout kategoriBencana, kategoriPendidikan, kategoriKesehatan, kategoriKemanusiaan;
-    private LinearLayout homeButton, campaignsButton, profileButton;
+    private BottomNavigationView bottomNavigationView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +30,23 @@ public class HomeActivity extends AppCompatActivity {
         // Inisialisasi view
         headerWelcome = findViewById(R.id.headerWelcome);
         searchField = findViewById(R.id.searchField);
-        searchIcon = findViewById(R.id.searchIcon);
-        bannerImage = findViewById(R.id.bannerImage);
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
         kategoriBencana = findViewById(R.id.kategoriBencana);
         kategoriPendidikan = findViewById(R.id.kategoriPendidikan);
         kategoriKesehatan = findViewById(R.id.kategoriKesehatan);
         kategoriKemanusiaan = findViewById(R.id.kategoriKemanusiaan);
 
-        homeButton = findViewById(R.id.bottomNav).findViewById(R.id.homeButton);
-        campaignsButton = findViewById(R.id.bottomNav).findViewById(R.id.donasiButton);
-        profileButton = findViewById(R.id.bottomNav).findViewById(R.id.profileButton);
+        // Dapatkan peran pengguna dari SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String role = preferences.getString("role", "user");
+
+        // Atur Bottom Navigation berdasarkan peran
+        if (role.equals("admin")) {
+            bottomNavigationView.inflateMenu(R.menu.bottom_nav_admin);
+        } else {
+            bottomNavigationView.inflateMenu(R.menu.bottom_nav_user);
+        }
 
         // Mengambil dan menampilkan nama pengguna
         UserUtils.getCurrentFullName(new UserUtils.OnFullNameReceivedListener() {
@@ -86,27 +94,30 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         // Aksi saat tombol di bottom navigation dipilih
-        homeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Sudah di halaman Home, tidak perlu melakukan apa-apa
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.home:
+                    return true; // Sudah di halaman Home
+                case R.id.tambah_donasi:
+                    if (role.equals("admin")) {
+                        startActivity(new Intent(HomeActivity.this, TambahDonasiActivity.class));
+                    }
+                    return true;
+                case R.id.laporan_donasi:
+                    if (role.equals("admin")) {
+                        startActivity(new Intent(HomeActivity.this, LaporanDonasiActivity.class));
+                    }
+                    return true;
+                case R.id.riwayat_transaksi:
+                    if (role.equals("user")) {
+                        startActivity(new Intent(HomeActivity.this, RiwayatTransaksiActivity.class));
+                    }
+                    return true;
+                case R.id.profile:
+                    startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
+                    return true;
             }
-        });
-
-        campaignsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, TambahDonasiActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        profileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
+            return false;
         });
     }
 }

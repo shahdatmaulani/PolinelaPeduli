@@ -67,7 +67,10 @@ public class KesehatanActivity extends AppCompatActivity {
                     int target = cursor.getInt(cursor.getColumnIndexOrThrow("target"));
                     String gambar = cursor.getString(cursor.getColumnIndexOrThrow("gambar"));
 
-                    Donasi donasi = new Donasi(id, nama, deskripsi, kategori, target, gambar);
+                    // Mengambil email dari sumber yang relevan (misalnya, database Firebase atau kosong jika tidak tersedia)
+                    String email = ""; // Ganti dengan nilai email yang sesuai
+
+                    Donasi donasi = new Donasi(id, nama, deskripsi, kategori, target, gambar, email);
                     donasiList.add(donasi);
                 }
             } while (cursor.moveToNext());

@@ -28,8 +28,6 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText etFullName, etEmail, etPassword, etConfirmPassword;
     private Button btnSignUp;
     private TextView tvAlreadyHaveAccount;
-
-    // Inisialisasi Firestore
     private FirebaseFirestore db;
 
     @Override
@@ -48,7 +46,6 @@ public class SignUpActivity extends AppCompatActivity {
         btnSignUp = findViewById(R.id.btn_sign_up);
         tvAlreadyHaveAccount = findViewById(R.id.tv_already_have_account);
 
-        // Listener untuk tombol Sign Up
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -56,11 +53,9 @@ public class SignUpActivity extends AppCompatActivity {
             }
         });
 
-        // Listener untuk TextView "Already have an account?" untuk pindah ke halaman login
         tvAlreadyHaveAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Pindah ke LoginActivity
                 Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
                 startActivity(intent);
                 finish();
@@ -68,14 +63,12 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    // Metode untuk mendaftarkan pengguna
     private void registerUser() {
         String fullName = etFullName.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-        // Validasi input
         if (TextUtils.isEmpty(fullName)) {
             etFullName.setError("Full name is required");
             return;
@@ -96,41 +89,39 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        // Mendaftarkan pengguna menggunakan Firebase Authentication
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Pendaftaran berhasil
                             FirebaseUser user = mAuth.getCurrentUser();
                             Toast.makeText(SignUpActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
 
-                            // Menyimpan informasi tambahan di Firestore
-                            saveAdditionalUserInfo(fullName);
+                            saveAdditionalUserInfo(fullName, email);
 
-                            // Pindah ke halaman login
                             Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
                             startActivity(intent);
                             finish();
                         } else {
-                            // Pendaftaran gagal
                             Toast.makeText(SignUpActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
-    // Metode untuk menyimpan informasi tambahan seperti nama lengkap di Firestore
-    private void saveAdditionalUserInfo(String fullName) {
+    private void saveAdditionalUserInfo(String fullName, String email) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
 
-            // Buat data pengguna
+            // Tentukan role berdasarkan email
+            String role = email.equals("adminpolinelapeduli@gmail.com") ? "admin" : "user";
+
+            // Buat data pengguna dengan peran
             Map<String, Object> userData = new HashMap<>();
             userData.put("fullName", fullName);
-            userData.put("email", user.getEmail());
+            userData.put("email", email);
+            userData.put("role", role);
 
             // Simpan ke Firestore
             db.collection("users").document(userId)

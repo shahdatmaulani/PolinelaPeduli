@@ -207,7 +207,8 @@ public class EditDonasiActivity extends AppCompatActivity {
             return;
         }
 
-        boolean isUpdated = databaseHelper.updateDonasi(donasiId, updatedNama, updatedDeskripsi, kategoriDonasi, updatedTarget, gambarPath);
+        int jumlahDonasi = 1;
+        boolean isUpdated = databaseHelper.updateDonasi(donasiId, updatedNama, updatedDeskripsi, kategoriDonasi, updatedTarget, gambarPath, jumlahDonasi);
         if (isUpdated) {
             Toast.makeText(EditDonasiActivity.this, "Donasi berhasil diperbarui", Toast.LENGTH_SHORT).show();
             finish();
