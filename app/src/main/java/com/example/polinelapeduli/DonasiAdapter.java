@@ -83,6 +83,10 @@ public class DonasiAdapter extends ArrayAdapter<Donasi> {
             }
 
             int jumlahDonasi = Integer.parseInt(jumlahDonasiStr);
+            if (jumlahDonasi < 1000) {
+                Toast.makeText(context, "Jumlah donasi minimal Rp 1.000", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // Simpan jumlah donasi ke database
             DatabaseHelper dbHelper = new DatabaseHelper(context);

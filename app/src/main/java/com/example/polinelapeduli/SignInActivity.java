@@ -4,12 +4,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
@@ -31,14 +29,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 public class SignInActivity extends AppCompatActivity {
-    private GoogleSignInOptions gso;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
-
     private EditText etEmail, etPassword;
-    private Button btnSignIn, btnSignUpGoogle;
-    private CheckBox cbRememberMe;
-    private TextView tvForgotPassword, tvSignUp;
     private static final int RC_SIGN_IN = 9001;
 
     @Override
@@ -49,9 +42,11 @@ public class SignInActivity extends AppCompatActivity {
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Configure Google Sign In
-        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("286562216166-3k9nu47p64ddac2a8rslt1tvaj1b4b9c.apps.googleusercontent.com")
+        /* Configure Google Sign In -> urutan request tidak mempengaruhi
+        problem adalah requestIdToken tidak boleh diisi langsung client Id dari OAuth 2.0 Client IDs
+        */
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
@@ -60,11 +55,11 @@ public class SignInActivity extends AppCompatActivity {
         // Initialize Views
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
-        cbRememberMe = findViewById(R.id.cb_remember_me);
-        btnSignIn = findViewById(R.id.btn_sign_in);
-        btnSignUpGoogle = findViewById(R.id.btn_sign_in_google);
-        tvForgotPassword = findViewById(R.id.tv_forgot_password);
-        tvSignUp = findViewById(R.id.tv_signup);
+        CheckBox cbRememberMe = findViewById(R.id.cb_remember_me);
+        Button btnSignIn = findViewById(R.id.btn_sign_in);
+        Button btnSignUpGoogle = findViewById(R.id.btn_sign_in_google);
+        TextView tvForgotPassword = findViewById(R.id.tv_forgot_password);
+        TextView tvSignUp = findViewById(R.id.tv_signup);
 
         // Google Sign-In button click listener
         btnSignUpGoogle.setOnClickListener(new View.OnClickListener() {

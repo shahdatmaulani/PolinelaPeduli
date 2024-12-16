@@ -2,12 +2,15 @@ package com.example.polinelapeduli;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,7 +23,8 @@ public class HomeActivity extends AppCompatActivity {
     private EditText searchField;
     private LinearLayout kategoriBencana, kategoriPendidikan, kategoriKesehatan, kategoriKemanusiaan;
     private BottomNavigationView bottomNavigationView;
-
+    private DatabaseHelper databaseHelper;
+    private String role;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +41,12 @@ public class HomeActivity extends AppCompatActivity {
         kategoriKesehatan = findViewById(R.id.kategoriKesehatan);
         kategoriKemanusiaan = findViewById(R.id.kategoriKemanusiaan);
 
+        // Inisialisasi DatabaseHelper
+        databaseHelper = new DatabaseHelper(this);
+
         // Dapatkan peran pengguna dari SharedPreferences
         SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        String role = preferences.getString("role", "user");
+        role = preferences.getString("role", "user");
 
         // Atur Bottom Navigation berdasarkan peran
         if (role.equals("admin")) {
@@ -49,49 +56,36 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         // Mengambil dan menampilkan nama pengguna
-        UserUtils.getCurrentFullName(new UserUtils.OnFullNameReceivedListener() {
+        UserUtils.getCurrentFullName(fullName -> {
+            if (fullName != null) {
+                headerWelcome.setText("Welcome, " + fullName + "!");
+            } else {
+                headerWelcome.setText("Welcome!");
+            }
+        });
+
+        // Pencarian berdasarkan input di searchField
+        searchField.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onFullNameReceived(String fullName) {
-                if (fullName != null) {
-                    headerWelcome.setText("Welcome, " + fullName + "!");
-                } else {
-                    headerWelcome.setText("Welcome!");
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String queryText = s.toString().trim();
+                if (!queryText.isEmpty()) {
+                    searchDonations(queryText);
                 }
             }
         });
 
         // Aksi saat kategori dipilih
-        kategoriBencana.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, BencanaActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        kategoriPendidikan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, PendidikanActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        kategoriKesehatan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, KesehatanActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        kategoriKemanusiaan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, KemanusiaanActivity.class);
-                startActivity(intent);
-            }
-        });
+        kategoriBencana.setOnClickListener(v -> openCategoryActivity(BencanaActivity.class));
+        kategoriPendidikan.setOnClickListener(v -> openCategoryActivity(PendidikanActivity.class));
+        kategoriKesehatan.setOnClickListener(v -> openCategoryActivity(KesehatanActivity.class));
+        kategoriKemanusiaan.setOnClickListener(v -> openCategoryActivity(KemanusiaanActivity.class));
 
         // Aksi saat tombol di bottom navigation dipilih
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
@@ -119,5 +113,34 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    private void searchDonations(String queryText) {
+        // Gunakan Cursor untuk menjalankan query pencarian pada DatabaseHelper
+        Cursor cursor = databaseHelper.getReadableDatabase().rawQuery(
+                "SELECT * FROM " + DatabaseHelper.TABLE_DONASI + " WHERE " +
+                        DatabaseHelper.COLUMN_NAMA + " LIKE ? OR " +
+                        DatabaseHelper.COLUMN_KATEGORI + " LIKE ?",
+                new String[]{"%" + queryText + "%", "%" + queryText + "%"}
+        );
+
+        if (cursor.moveToFirst()) {
+            StringBuilder resultBuilder = new StringBuilder();
+            do {
+                String namaDonasi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAMA));
+                resultBuilder.append("Ditemukan: ").append(namaDonasi).append("\n");
+            } while (cursor.moveToNext());
+
+            Toast.makeText(this, resultBuilder.toString(), Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Tidak ada hasil ditemukan", Toast.LENGTH_SHORT).show();
+        }
+
+        cursor.close();
+    }
+
+    private void openCategoryActivity(Class<?> activityClass) {
+        Intent intent = new Intent(HomeActivity.this, activityClass);
+        startActivity(intent);
     }
 }

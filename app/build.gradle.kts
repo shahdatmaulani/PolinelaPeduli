@@ -10,6 +10,10 @@ android {
     namespace = "com.example.polinelapeduli"
     compileSdk = 34
 
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+
     defaultConfig {
         applicationId = "com.example.polinelapeduli"
         minSdk = 24
@@ -61,6 +65,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.0")
     implementation("com.google.firebase:firebase-firestore:25.1.1")
+    implementation("com.android.volley:volley:1.2.1")
+
 
     // payment gateway
     implementation("com.midtrans:uikit:2.0.0-SANDBOX")

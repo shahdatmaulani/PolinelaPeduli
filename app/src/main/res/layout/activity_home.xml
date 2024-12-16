@@ -221,73 +221,11 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Home Button -->
-        <LinearLayout
-            android:id="@+id/homeButton"
-            android:layout_width="0dp"
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationView"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/pic16"
-                android:contentDescription="Home Icon" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textSize="12sp"
-                android:textColor="@color/black" />
-        </LinearLayout>
-
-        <!-- Donasi Button -->
-        <LinearLayout
-            android:id="@+id/donasiButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/pic17"
-                android:contentDescription="Campaigns Icon" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tambah Donasi"
-                android:textSize="12sp"
-                android:textColor="@color/black" />
-        </LinearLayout>
-
-        <!-- Profile Button -->
-        <LinearLayout
-            android:id="@+id/profileButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/pic18"
-                android:contentDescription="Profile Icon" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Profile"
-                android:textSize="12sp"
-                android:textColor="@color/black" />
-        </LinearLayout>
+            android:layout_gravity="bottom" />
 
     </LinearLayout>
 

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">PolinelaPeduli</string>
+    <string name="default_web_client_id">286562216166-00vcgu3akr6l648vmsv9voang9neuua3.apps.googleusercontent.com</string>
     <string-array name="metode_pembayaran">
         <item>Pilih Metode Pembayaran</item>
         <item>GoPay</item>
