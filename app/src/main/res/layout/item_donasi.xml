@@ -34,6 +34,21 @@
         android:scaleType="centerCrop"
         android:contentDescription="Donasi Image" />
 
+    <!-- EditText untuk memasukkan jumlah donasi -->
+    <EditText
+        android:id="@+id/etJumlahDonasi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Masukkan jumlah donasi"
+        android:inputType="number"
+        android:layout_marginTop="16dp"
+        android:padding="13dp"
+        android:background="@drawable/edittext_background"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+
+        />
+
     <Button
         android:id="@+id/btnDonasiSekarang"
         android:layout_width="match_parent"

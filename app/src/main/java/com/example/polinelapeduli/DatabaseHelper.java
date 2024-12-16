@@ -9,16 +9,23 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "polinela_peduli.db";
-    private static final int DATABASE_VERSION = 2; // Hanya ada satu versi database
+    private static final int DATABASE_VERSION = 3; // Versi database terbaru
 
-    private static final String TABLE_DONASI = "donasi";
+    // Tabel donasi
+    public static final String TABLE_DONASI = "donasi";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAMA = "nama";
     public static final String COLUMN_DESKRIPSI = "deskripsi";
-    private static final String COLUMN_KATEGORI = "kategori";
+    public static final String COLUMN_KATEGORI = "kategori";
     public static final String COLUMN_TARGET = "target";
     public static final String COLUMN_GAMBAR = "gambar";
     public static final String COLUMN_JUMLAH_DONASI = "jumlah_donasi";
+
+    // Tabel users
+    public static final String TABLE_USERS = "users";
+    public static final String COLUMN_USER_ID = "user_id";
+    public static final String COLUMN_EMAIL = "email";
+    public static final String COLUMN_PASSWORD = "password";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -26,6 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        // Membuat tabel donasi
         String CREATE_TABLE_DONASI = "CREATE TABLE " + TABLE_DONASI + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_NAMA + " TEXT, "
@@ -33,8 +41,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_KATEGORI + " TEXT, "
                 + COLUMN_TARGET + " INTEGER, "
                 + COLUMN_GAMBAR + " TEXT, "
-                + COLUMN_JUMLAH_DONASI + " INTEGER DEFAULT 0)"; // Tambahkan kolom jumlah_donasi dengan default
+                + COLUMN_JUMLAH_DONASI + " INTEGER DEFAULT 0)";
         db.execSQL(CREATE_TABLE_DONASI);
+
+        // Membuat tabel users
+        String CREATE_TABLE_USERS = "CREATE TABLE " + TABLE_USERS + "("
+                + COLUMN_USER_ID + " TEXT PRIMARY KEY, "
+                + COLUMN_EMAIL + " TEXT, "
+                + COLUMN_PASSWORD + " TEXT)";
+        db.execSQL(CREATE_TABLE_USERS);
     }
 
     @Override
@@ -42,8 +57,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE " + TABLE_DONASI + " ADD COLUMN " + COLUMN_JUMLAH_DONASI + " INTEGER DEFAULT 0");
         }
+        if (oldVersion < 3) {
+            String CREATE_TABLE_USERS = "CREATE TABLE " + TABLE_USERS + "("
+                    + COLUMN_USER_ID + " TEXT PRIMARY KEY, "
+                    + COLUMN_EMAIL + " TEXT, "
+                    + COLUMN_PASSWORD + " TEXT)";
+            db.execSQL(CREATE_TABLE_USERS);
+        }
     }
 
+    // Metode CRUD untuk tabel donasi
     public boolean tambahDonasi(String nama, String deskripsi, String kategori, int target, String gambar) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -51,8 +74,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_DESKRIPSI, deskripsi);
         values.put(COLUMN_KATEGORI, kategori);
         values.put(COLUMN_TARGET, target);
-        values.put(COLUMN_GAMBAR, gambar); // Simpan path gambar
-        values.put(COLUMN_JUMLAH_DONASI, 0); // Inisialisasi jumlah_donasi dengan 0
+        values.put(COLUMN_GAMBAR, gambar);
+        values.put(COLUMN_JUMLAH_DONASI, 0);
 
         long result = db.insert(TABLE_DONASI, null, values);
         db.close();
@@ -70,7 +93,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_JUMLAH_DONASI, jumlahDonasi);
 
         int result = db.update(TABLE_DONASI, values, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
-        db.close(); // Pastikan untuk menutup database setelah update
+        db.close();
         return result > 0;
     }
 
@@ -91,31 +114,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TABLE_DONASI + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
-    public Cursor getDonasiByEmail(String email) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_DONASI + " WHERE email = ?", new String[]{email});
+    // Metode CRUD untuk tabel users
+    public boolean tambahUser(String userId, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_ID, userId);
+        values.put(COLUMN_EMAIL, email);
+        values.put(COLUMN_PASSWORD, password);
+
+        long result = db.insert(TABLE_USERS, null, values);
+        db.close();
+        return result != -1;
     }
 
+    public Cursor getUserById(String userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_USERS, null, COLUMN_USER_ID + "=?", new String[]{userId}, null, null, null);
+    }
 
-    public String[] getDonasiDataById(int id) {
-        String[] donasiData = null;
-        Cursor cursor = null;
-        try {
-            cursor = getDonasiById(id);
-            if (cursor != null && cursor.moveToFirst()) {
-                donasiData = new String[]{
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAMA)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESKRIPSI)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_KATEGORI)),
-                        String.valueOf(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TARGET))), // Pastikan konversi tipe data
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GAMBAR))
-                };
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close(); // Menutup cursor di akhir
-            }
-        }
-        return donasiData;
+    public Cursor getUserByEmail(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_USERS, null, COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
+    }
+
+    public boolean updateUser(String userId, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_EMAIL, email);
+        values.put(COLUMN_PASSWORD, password);
+
+        int result = db.update(TABLE_USERS, values, COLUMN_USER_ID + "=?", new String[]{userId});
+        db.close();
+        return result > 0;
+    }
+
+    public boolean hapusUser(String userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int result = db.delete(TABLE_USERS, COLUMN_USER_ID + "=?", new String[]{userId});
+        db.close();
+        return result > 0;
     }
 }
