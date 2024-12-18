@@ -30,12 +30,16 @@ public class BencanaActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
         donasiList = new ArrayList<>();
 
+        View headerView = getLayoutInflater().inflate(R.layout.activity_bencana_header, null);
+        listView.addHeaderView(headerView);
+
         loadDonasi(); // Load data saat aktivitas pertama kali dibuat
 
         // Set event long click pada ListView
-        listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            final Donasi selectedDonasi = donasiList.get(position);
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {  if (position > 0) {
+            final Donasi selectedDonasi = donasiList.get(position - 1);
             showOptionsDialog(selectedDonasi);
+        }
             return true;
         });
     }

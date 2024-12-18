@@ -28,29 +28,17 @@ public class KemanusiaanActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
         donasiList = new ArrayList<>();
 
+        View headerView = getLayoutInflater().inflate(R.layout.activity_kemanusiaan_header, null);
+        listView.addHeaderView(headerView);
+
         loadDonasi();
 
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final Donasi selectedDonasi = donasiList.get(position);
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(KemanusiaanActivity.this);
-                builder.setTitle("Pilih Opsi");
-                String[] options = {"Edit", "Hapus"};
-                builder.setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            editDonasi(selectedDonasi);
-                        } else if (which == 1) {
-                            hapusDonasi(selectedDonasi.getId());
-                        }
-                    }
-                });
-                builder.show();
-                return true;
-            }
+        // Set event long click pada ListView
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {  if (position > 0) {
+            final Donasi selectedDonasi = donasiList.get(position - 1);
+            showOptionsDialog(selectedDonasi);
+        }
+            return true;
         });
     }
 
@@ -79,6 +67,20 @@ public class KemanusiaanActivity extends AppCompatActivity {
 
         donasiAdapter = new DonasiAdapter(this, donasiList);
         listView.setAdapter(donasiAdapter);
+    }
+
+    private void showOptionsDialog(Donasi selectedDonasi) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(KemanusiaanActivity.this);
+        builder.setTitle("Pilih Opsi");
+        String[] options = {"Edit", "Hapus"};
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                editDonasi(selectedDonasi);
+            } else if (which == 1) {
+                hapusDonasi(selectedDonasi.getId());
+            }
+        });
+        builder.show();
     }
 
     private void editDonasi(Donasi donasi) {
