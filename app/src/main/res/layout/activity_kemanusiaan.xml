@@ -1,56 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
+    android:background="@color/white"
     tools:context=".KemanusiaanActivity">
-
-    <!-- Header Image -->
-    <ImageView
-        android:id="@+id/headerImage"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/pic1"
-        android:contentDescription="Header Image"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- Title -->
-    <TextView
-        android:id="@+id/kemanusiaanTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Kemanusiaan"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/headerImage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_gravity="center_horizontal"/>
-
-    <!-- Sub-title / Description -->
-    <TextView
-        android:id="@+id/kemanusiaanDescription"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Dukung misi kemanusiaan dan bantu mereka yang membutuhkan. Berikut adalah daftar kampanye yang membutuhkan bantuan Anda."
-        android:textSize="16sp"
-        android:textColor="@color/black"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/kemanusiaanTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_height="match_parent" />
 </LinearLayout>
