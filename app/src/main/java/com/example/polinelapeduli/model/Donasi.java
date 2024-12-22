@@ -1,4 +1,4 @@
-package com.example.polinelapeduli;
+package com.example.polinelapeduli.model;
 
 public class Donasi {
     private int id; // ID donasi

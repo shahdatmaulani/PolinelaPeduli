@@ -1,18 +1,19 @@
-package com.example.polinelapeduli;
+package com.example.polinelapeduli.activity;
 
-import android.database.Cursor;
 import android.os.Bundle;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.polinelapeduli.R;
+
 import java.util.ArrayList;
 
 public class RiwayatTransaksiActivity extends AppCompatActivity {
 
     private ListView listViewRiwayatDonasi;
-    private DatabaseHelper databaseHelper;
     private ArrayList<String> riwayatDonasiList;
 
     @Override
@@ -21,32 +22,27 @@ public class RiwayatTransaksiActivity extends AppCompatActivity {
         setContentView(R.layout.activity_riwayat_transaksi);
 
         listViewRiwayatDonasi = findViewById(R.id.listViewRiwayatDonasi);
-        databaseHelper = new DatabaseHelper(this);
         riwayatDonasiList = new ArrayList<>();
 
-        loadRiwayatDonasi();
+        loadRiwayatDonasiDummy();
 
         // Set adapter untuk ListView
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, riwayatDonasiList);
         listViewRiwayatDonasi.setAdapter(adapter);
 
         // Set listener untuk item click
-        listViewRiwayatDonasi.setOnItemClickListener((AdapterView<?> parent, android.view.View view, int position, long id) -> {
+        listViewRiwayatDonasi.setOnItemClickListener((parent, view, position, id) -> {
             String selectedDonasi = riwayatDonasiList.get(position);
             Toast.makeText(RiwayatTransaksiActivity.this, "Selected: " + selectedDonasi, Toast.LENGTH_SHORT).show();
             // Anda dapat menambahkan aksi lainnya di sini, seperti menampilkan detail donasi
         });
     }
 
-    private void loadRiwayatDonasi() {
-        Cursor cursor = databaseHelper.getAllDonasi();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                String nama = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAMA));
-                String jumlahDonasi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_JUMLAH_DONASI));
-                riwayatDonasiList.add(nama + " - Jumlah Donasi: " + jumlahDonasi);
-            }
-            cursor.close();
-        }
+    private void loadRiwayatDonasiDummy() {
+        // Data dummy untuk simulasi tampilan riwayat donasi
+        riwayatDonasiList.clear();
+        riwayatDonasiList.add("Donasi Kesehatan A - Jumlah Donasi: Rp 750.000");
+        riwayatDonasiList.add("Donasi Kemanusiaan B - Jumlah Donasi: Rp 1.250.000");
+        riwayatDonasiList.add("Donasi Pendidikan C - Jumlah Donasi: Rp 500.000");
     }
 }

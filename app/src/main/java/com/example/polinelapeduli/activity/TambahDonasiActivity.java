@@ -1,4 +1,4 @@
-package com.example.polinelapeduli;
+package com.example.polinelapeduli.activity;
 
 import android.Manifest;
 import android.content.Intent;
@@ -22,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.polinelapeduli.R;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -34,7 +36,6 @@ public class TambahDonasiActivity extends AppCompatActivity {
     private TextView tvStatusGambar;
     private Button btnPilihGambar, btnSimpanDonasi;
     private String gambarPath;
-    private DatabaseHelper databaseHelper;
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES = 2;
@@ -53,21 +54,9 @@ public class TambahDonasiActivity extends AppCompatActivity {
         btnPilihGambar = findViewById(R.id.btnPilihGambar);
         btnSimpanDonasi = findViewById(R.id.btnSimpanDonasi);
 
-        databaseHelper = new DatabaseHelper(this);
+        btnPilihGambar.setOnClickListener(v -> chooseImage());
 
-        btnPilihGambar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                chooseImage();
-            }
-        });
-
-        btnSimpanDonasi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveDonation();
-            }
-        });
+        btnSimpanDonasi.setOnClickListener(v -> saveDonation());
     }
 
     private void chooseImage() {
@@ -96,7 +85,7 @@ public class TambahDonasiActivity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+        startActivityForResult(Intent.createChooser(intent, "Pilih Gambar"), PICK_IMAGE_REQUEST);
     }
 
     @Override
@@ -104,11 +93,10 @@ public class TambahDonasiActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri imageUri = data.getData();
-            String imagePath = saveImageToInternalStorage(imageUri); // Simpan gambar ke penyimpanan internal
-            if (imagePath != null) {
-                gambarPath = imagePath; // Simpan path gambar untuk disimpan di database
-                imageViewDonasi.setImageURI(imageUri); // Tampilkan gambar di ImageView
-                tvStatusGambar.setText("File dipilih: " + getFileName(imageUri)); // Tampilkan status gambar
+            gambarPath = saveImageToInternalStorage(imageUri);
+            if (gambarPath != null) {
+                imageViewDonasi.setImageURI(imageUri);
+                tvStatusGambar.setText("File dipilih: " + getFileName(imageUri));
             } else {
                 Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
             }
@@ -118,13 +106,10 @@ public class TambahDonasiActivity extends AppCompatActivity {
     private String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-            try {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
                     result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
                 }
-            } finally {
-                cursor.close();
             }
         }
         if (result == null) {
@@ -137,27 +122,40 @@ public class TambahDonasiActivity extends AppCompatActivity {
         return result;
     }
 
-    // Menyimpan gambar ke penyimpanan internal
     private String saveImageToInternalStorage(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             File file = new File(getFilesDir(), getFileName(uri));
-            FileOutputStream outputStream = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
+            try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, length);
+                }
             }
-
-            outputStream.close();
             inputStream.close();
-
-            return file.getAbsolutePath(); // Mengembalikan path gambar yang disimpan
+            return file.getAbsolutePath();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private void saveDonation() {
+        String nama = etNamaDonasi.getText().toString();
+        String deskripsi = etDeskripsiDonasi.getText().toString();
+        String kategori = getSelectedCategory();
+        int target = Integer.parseInt(etTargetDonasi.getText().toString());
+
+        // Simulasi penyimpanan data
+        Toast.makeText(this, "Donasi berhasil disimpan:\nNama: " + nama + "\nKategori: " + kategori + "\nTarget: Rp " + target, Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    private String getSelectedCategory() {
+        int selectedId = radioGroupKategori.getCheckedRadioButtonId();
+        RadioButton radioButton = findViewById(selectedId);
+        return radioButton.getText().toString();
     }
 
     @Override
@@ -170,40 +168,5 @@ public class TambahDonasiActivity extends AppCompatActivity {
                 Toast.makeText(this, "Izin akses gambar ditolak", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    private void saveDonation() {
-        String nama = etNamaDonasi.getText().toString();
-        String deskripsi = etDeskripsiDonasi.getText().toString();
-        String kategori = getSelectedCategory();
-        int target = Integer.parseInt(etTargetDonasi.getText().toString());
-
-        if (databaseHelper.tambahDonasi(nama, deskripsi, kategori, target, gambarPath)) {
-            Intent intent;
-            switch (kategori) {
-                case "Bencana":
-                    intent = new Intent(this, BencanaActivity.class);
-                    break;
-                case "Pendidikan":
-                    intent = new Intent(this, PendidikanActivity.class);
-                    break;
-                case "Kesehatan":
-                    intent = new Intent(this, KesehatanActivity.class);
-                    break;
-                case "Kemanusiaan":
-                    intent = new Intent(this, KemanusiaanActivity.class);
-                    break;
-                default:
-                    return;
-            }
-            startActivity(intent);
-            finish();
-        }
-    }
-
-    private String getSelectedCategory() {
-        int selectedId = radioGroupKategori.getCheckedRadioButtonId();
-        RadioButton radioButton = findViewById(selectedId);
-        return radioButton.getText().toString();
     }
 }
