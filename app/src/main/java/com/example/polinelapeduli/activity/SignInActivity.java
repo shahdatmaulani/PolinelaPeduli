@@ -30,12 +30,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class SignInActivity extends AppCompatActivity {
 
@@ -99,36 +99,53 @@ public class SignInActivity extends AppCompatActivity {
         rememberMeCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(Constants.KEY_REMEMBER_ME, isChecked);
-            if (!isChecked) {
-                editor.remove(Constants.KEY_USER_EMAIL);
-            } else {
+            if (isChecked) {
                 editor.putString(Constants.KEY_USER_EMAIL, emailField.getText().toString().trim());
+            } else {
+                editor.remove(Constants.KEY_USER_EMAIL);
             }
             editor.apply();
         });
 
-        googleSignInButton.setOnClickListener(v -> signInWithGoogle());
         signInButton.setOnClickListener(v -> signInWithEmail());
+        googleSignInButton.setOnClickListener(v -> signInWithGoogle());
         forgotPasswordText.setOnClickListener(v -> navigateToActivity(ForgotPasswordActivity.class));
         signUpText.setOnClickListener(v -> navigateToActivity(SignUpActivity.class));
     }
 
     private void signInWithGoogle() {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        googleSignInLauncher.launch(signInIntent);
+        // Reset the sign-in session
+        googleSignInClient.signOut().addOnCompleteListener(task -> googleSignInClient.revokeAccess().addOnCompleteListener(revokeTask -> {
+            // Launch Google Sign-In intent
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            googleSignInLauncher.launch(signInIntent);
+        }));
     }
 
     private void handleGoogleSignInResult(Task<GoogleSignInAccount> task) {
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
-            if (account != null) {
-                authenticateWithFirebase(account);
+            User existingUser = userRepository.getUserByEmail(account.getEmail());
+            if (existingUser != null) {
+                String loginMethod = existingUser.getLoginMethod() != null ? existingUser.getLoginMethod().toString() : "";
+                if ("EMAIL".equalsIgnoreCase(loginMethod) && existingUser.isActive()) {
+                    showToast("Email is already registered with EMAIL");
+                    //Reset Google Sign-In on failure
+                    resetGoogleSignIn();
+                } else if("GOOGLE".equalsIgnoreCase(loginMethod) && existingUser.isActive()) {
+                    authenticateWithFirebase(account);
+                } else {
+                    showToast("Account is not active");
+                }
             } else {
-                showToast("Google sign-in failed: No account found");
+                authenticateWithFirebase(account);
+                createUserInDatabase(account);
             }
         } catch (ApiException e) {
             Log.e(TAG, "Google sign-in failed", e);
-            showToast("Google sign-in failed: " + e.getMessage());
+            showToast("Google sign-in failed");
+            // Reset Google Sign-In on failure
+            resetGoogleSignIn();
         }
     }
 
@@ -136,73 +153,7 @@ public class SignInActivity extends AppCompatActivity {
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
-                createUserInDatabase(account);
-                saveUserEmailToPreferences(account.getEmail());
                 showToast("Login with Google successful");
-                navigateToHome();
-            } else {
-                showToast("Authentication failed");
-            }
-        });
-    }
-
-    private void createUserInDatabase(GoogleSignInAccount account) {
-        if (account == null) {
-            Log.w(TAG, "GoogleSignInAccount is null");
-            showToast("Failed to sign in. Please try again.");
-            return;
-        }
-
-        String email = account.getEmail();
-        if (email == null || email.isEmpty()) {
-            showToast("Email is missing from Google account. Please check your account settings.");
-            return;
-        }
-
-        User existingUser = userRepository.getUserByEmail(email);
-        if (existingUser != null) {
-            if (!"GOOGLE".equalsIgnoreCase(String.valueOf(existingUser.getLoginMethod()))) {
-                showToast("Email is already registered. Please use Sign In with " + existingUser.getLoginMethod() + ".");
-                return;
-            }
-            showToast("Welcome back! Logging you in...");
-            return;
-        }
-
-        User newUser = new User();
-        newUser.setFullName(account.getDisplayName());
-        newUser.setEmail(email);
-        newUser.setLoginMethod(ELoginMethod.GOOGLE);
-        newUser.setRole(email.equals("adminpolinelapeduli@gmail.com") ? ERole.ADMIN : ERole.USER);
-        newUser.setProfilePicture(account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : null);
-        newUser.setActive(true);
-        newUser.setCreatedAt(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
-
-        if (userRepository.insertUser(newUser)) {
-            showToast("Account created successfully! Welcome, " + newUser.getFullName() + ".");
-        } else {
-            showToast("Failed to create account. Please try again.");
-        }
-    }
-
-    private void signInWithEmail() {
-        String email = InputValidator.getValidatedEmail(emailField);
-        if (email == null) return;
-        if (!InputValidator.validatePassword(passwordField)) return;
-
-        User user = userRepository.getUserByEmail(email);
-        if (user != null && !"EMAIL".equalsIgnoreCase(String.valueOf(user.getLoginMethod()))) {
-            showToast("Email is already registered. Please use Sign In with " + user.getLoginMethod() + ".");
-            return;
-        } else {
-            showToast("Email not found");
-        }
-
-        String password = passwordField.getText().toString().trim();
-        firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
-            if (task.isSuccessful()) {
-                saveUserEmailToPreferences(email);
-                showToast("Login successful");
                 navigateToHome();
             } else {
                 handleFirebaseAuthException(task.getException());
@@ -210,10 +161,63 @@ public class SignInActivity extends AppCompatActivity {
         });
     }
 
+    private void resetGoogleSignIn() {
+        googleSignInClient.signOut().addOnCompleteListener(task ->
+                googleSignInClient.revokeAccess().addOnCompleteListener(revokeTask ->
+                        Log.i(TAG, "Google Sign-In reset completed")
+                )
+        );
+    }
+
+    private void createUserInDatabase(GoogleSignInAccount account) {
+        User newUser = new User();
+        newUser.setFullName(account.getDisplayName());
+        newUser.setEmail(account.getEmail());
+        newUser.setLoginMethod(ELoginMethod.GOOGLE);
+        newUser.setRole(Objects.equals(account.getEmail(), "adminpolinelapeduli@gmail.com") ? ERole.ADMIN : ERole.USER);
+        newUser.setProfilePicture(account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : null);
+        newUser.setActive(true);
+        newUser.setCreatedAt(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+
+        if (userRepository.insertUser(newUser)) {
+            Log.i(TAG, "User inserted into database successfully");
+        } else {
+            Log.w(TAG, "Failed to insert user into database");
+        }
+    }
+
+    private void signInWithEmail() {
+        String email = InputValidator.getValidatedEmail(emailField);
+        if (email == null || !InputValidator.validatePassword(passwordField)) return;
+        String password = passwordField.getText().toString().trim();
+
+        User existingUser = userRepository.getUserByEmail(email);
+        if (existingUser != null) {
+            String loginMethod = existingUser.getLoginMethod() != null ? existingUser.getLoginMethod().toString() : "";
+            boolean isActive = existingUser.isActive();
+
+            if ("EMAIL".equalsIgnoreCase(loginMethod) && isActive) {
+                firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        saveUserEmailToPreferences(email);
+                        showToast("Login successful");
+                        navigateToHome();
+                    } else {
+                        handleFirebaseAuthException(task.getException());
+                    }
+                });
+            } else if ("GOOGLE".equalsIgnoreCase(loginMethod) && isActive) {
+                showToast("Email is already registered with Google");
+            } else {
+                showToast("Account is not active");
+            }
+        } else {
+            showToast("Email not registered");
+        }
+    }
+
     private void handleFirebaseAuthException(Exception exception) {
-        if (exception instanceof FirebaseAuthInvalidUserException) {
-            showToast("Email not found");
-        } else if (exception instanceof FirebaseAuthInvalidCredentialsException) {
+        if (exception instanceof FirebaseAuthInvalidCredentialsException) {
             showToast("Invalid email or password");
         } else {
             showToast("Authentication failed: " + exception.getMessage());

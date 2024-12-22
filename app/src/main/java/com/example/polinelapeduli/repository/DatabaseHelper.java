@@ -5,6 +5,12 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import androidx.annotation.NonNull;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "polinela_peduli.db";
@@ -125,6 +131,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         //Input Data Admin
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String currentTime = dateFormat.format(new Date(System.currentTimeMillis()));
+        ContentValues adminValues = getContentValues(currentTime);
+        db.insert(TABLE_USERS, null, adminValues);
+
+    }
+
+    @NonNull
+    private static ContentValues getContentValues(String currentTime) {
         ContentValues adminValues = new ContentValues();
         adminValues.put(COLUMN_FULLNAME, "Admin Polinela Peduli");
         adminValues.put(COLUMN_EMAIL, "adminpolinelapeduli@gmail.com");
@@ -132,11 +147,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         adminValues.put(COLUMN_ROLE, "ADMIN");
         adminValues.put(COLUMN_PROFILE_PICTURE, "");
         adminValues.put(COLUMN_IS_ACTIVE, 1);
-        adminValues.put(COLUMN_CREATED_AT, String.valueOf(System.currentTimeMillis()));
-        adminValues.put(COLUMN_UPDATED_AT, String.valueOf(System.currentTimeMillis()));
-
-        db.insert(TABLE_USERS, null, adminValues);
-
+        adminValues.put(COLUMN_CREATED_AT, currentTime);
+        adminValues.put(COLUMN_UPDATED_AT, currentTime);
+        return adminValues;
     }
 
     @Override

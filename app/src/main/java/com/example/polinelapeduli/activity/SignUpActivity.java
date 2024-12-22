@@ -24,7 +24,10 @@ import java.util.Locale;
 
 public class SignUpActivity extends AppCompatActivity {
 
+    // Firebase Authentication
     private FirebaseAuth mAuth;
+
+    // UI Components
     private EditText etFullName, etEmail, etPassword, etConfirmPassword;
     private UserRepository userRepository;
 
@@ -32,16 +35,18 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-        userRepository = new UserRepository(this);
 
+        userRepository = new UserRepository(this);
         initializeFirebase();
         initializeUI();
     }
 
+    // Initialize Firebase Authentication
     private void initializeFirebase() {
         mAuth = FirebaseAuth.getInstance();
     }
 
+    // Set up UI components and event listeners
     private void initializeUI() {
         etFullName = findViewById(R.id.et_full_name);
         etEmail = findViewById(R.id.et_email);
@@ -54,12 +59,14 @@ public class SignUpActivity extends AppCompatActivity {
         tvAlreadyHaveAccount.setOnClickListener(v -> navigateToSignIn());
     }
 
+    // Navigate to SignInActivity
     private void navigateToSignIn() {
         Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
         startActivity(intent);
         finish();
     }
 
+    // Register a new user
     private void registerUser() {
         String fullName = InputValidator.getValidatedText(etFullName, "Full name is required");
         if (fullName == null) return;
@@ -68,34 +75,43 @@ public class SignUpActivity extends AppCompatActivity {
         if (email == null) return;
 
         if (!InputValidator.validatePassword(etPassword)) return;
+
         if (!InputValidator.validateConfirmPassword(etConfirmPassword, etPassword)) return;
 
         String password = etPassword.getText().toString().trim();
-        String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
-        User user = userRepository.getUserByEmail(email);
-
-        if (user != null) {
-            if (user.isActive()) {
-                showToast("Email is already registered.");
-            } else {
-                showToast("Email is already registered but it's not active.");
-            }
+        // Check if email is already registered
+        User existingUser = userRepository.getUserByEmail(email);
+        if (existingUser != null) {
+            handleExistingUser(existingUser);
             return;
         }
 
+        String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        // Firebase registration
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         handleSuccessfulRegistration(fullName, email, createdAt);
                     } else {
-                        String errorMessage = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                        showToast("Registration failed: " + errorMessage);
-                        Log.e("SignUpActivity", "Registration failed: " + errorMessage);
+                        handleRegistrationFailure(task.getException());
                     }
                 });
     }
 
+    // Handle existing user scenarios
+    private void handleExistingUser(User existingUser) {
+        String loginMethod = existingUser.getLoginMethod() != null ? existingUser.getLoginMethod().toString() : "";
+        boolean isActive = existingUser.isActive();
+        if ("EMAIL".equalsIgnoreCase(loginMethod) && isActive) {
+            showToast("Email is already registered.");
+        } else if ("GOOGLE".equalsIgnoreCase(loginMethod) && isActive) {
+            showToast("Email is already registered with Google.");
+        }
+    }
+
+    // Handle successful registration and input data to SQLite local
     private void handleSuccessfulRegistration(String fullName, String email, String createdAt) {
         User user = createUser(fullName, email, createdAt);
         if (userRepository.insertUser(user)) {
@@ -107,6 +123,14 @@ public class SignUpActivity extends AppCompatActivity {
         navigateToSignIn();
     }
 
+    // Handle registration failure
+    private void handleRegistrationFailure(Exception exception) {
+        String errorMessage = exception != null ? exception.getMessage() : "Unknown error";
+        showToast("Registration failed: " + errorMessage);
+        Log.e("SignUpActivity", "Registration failed: " + errorMessage);
+    }
+
+    // Create a new user object
     private User createUser(String fullName, String email, String createdAt) {
         User user = new User();
         user.setFullName(fullName);
@@ -120,6 +144,7 @@ public class SignUpActivity extends AppCompatActivity {
         return user;
     }
 
+    // Display a toast message
     private void showToast(String message) {
         Toast.makeText(SignUpActivity.this, message, Toast.LENGTH_SHORT).show();
     }
