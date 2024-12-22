@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:background="@color/white"
-    tools:context=".BencanaActivity">
+    tools:context=".activity.BencanaActivity">
 
     <ListView
         android:id="@+id/listView"

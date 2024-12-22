@@ -1,4 +1,4 @@
-package com.example.polinelapeduli;
+package com.example.polinelapeduli.activity;
 
 import android.Manifest;
 import android.content.Intent;
@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -22,6 +21,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.polinelapeduli.R;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -33,7 +34,6 @@ public class EditDonasiActivity extends AppCompatActivity {
     private ImageView imageViewDonasi;
     private TextView tvStatusGambar;
     private String gambarPath;
-    private DatabaseHelper databaseHelper;
     private int donasiId;
     private String kategoriDonasi;
 
@@ -46,7 +46,6 @@ public class EditDonasiActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_donasi);
 
         initViews();
-        databaseHelper = new DatabaseHelper(this);
         loadDataFromIntent();
 
         btnPilihGambar.setOnClickListener(v -> chooseImage());
@@ -181,40 +180,9 @@ public class EditDonasiActivity extends AppCompatActivity {
         String updatedDeskripsi = editDeskripsi.getText().toString();
         int updatedTarget = Integer.parseInt(editTarget.getText().toString());
 
-        // Pertahankan gambar lama jika tidak dipilih gambar baru
-        if (gambarPath == null) {
-            Cursor cursor = databaseHelper.getDonasiById(donasiId); // Mendapatkan data donasi lama berdasarkan id
-            if (cursor.moveToFirst()) {
-                gambarPath = cursor.getString(cursor.getColumnIndexOrThrow("gambar")); // Gambar lama dari database
-            }
-            cursor.close();
-        }
-
-        // Memastikan gambarPath tidak null sebelum memperbarui
-        if (gambarPath == null) {
-            Toast.makeText(this, "Gambar tidak tersedia", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Ambil kategori yang dipilih
-        RadioGroup radioGroup = findViewById(R.id.radioGroupKategoriEdit);
-        int selectedId = radioGroup.getCheckedRadioButtonId();
-        if (selectedId != -1) {
-            RadioButton selectedRadioButton = findViewById(selectedId);
-            kategoriDonasi = selectedRadioButton.getText().toString();
-        } else {
-            Toast.makeText(this, "Silakan pilih kategori", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        int jumlahDonasi = 1;
-        boolean isUpdated = databaseHelper.updateDonasi(donasiId, updatedNama, updatedDeskripsi, kategoriDonasi, updatedTarget, gambarPath, jumlahDonasi);
-        if (isUpdated) {
-            Toast.makeText(EditDonasiActivity.this, "Donasi berhasil diperbarui", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(EditDonasiActivity.this, "Gagal memperbarui donasi", Toast.LENGTH_SHORT).show();
-        }
+        // Notifikasi simulasi pembaruan data
+        Toast.makeText(this, "Data berhasil diperbarui:\nNama: " + updatedNama + "\nDeskripsi: " + updatedDeskripsi + "\nTarget: Rp " + updatedTarget, Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     @Override

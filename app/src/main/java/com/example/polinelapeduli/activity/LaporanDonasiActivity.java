@@ -1,19 +1,18 @@
-package com.example.polinelapeduli;
+package com.example.polinelapeduli.activity;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.polinelapeduli.R;
 
 import java.util.ArrayList;
 
 public class LaporanDonasiActivity extends AppCompatActivity {
 
     private ListView listViewLaporanDonasi;
-    private DatabaseHelper databaseHelper;
     private ArrayList<String> laporanDonasiList;
 
     @Override
@@ -22,22 +21,17 @@ public class LaporanDonasiActivity extends AppCompatActivity {
         setContentView(R.layout.activity_laporan_donasi);
 
         listViewLaporanDonasi = findViewById(R.id.listViewLaporanDonasi);
-        databaseHelper = new DatabaseHelper(this);
         laporanDonasiList = new ArrayList<>();
 
-        loadLaporanDonasi();
+        loadLaporanDonasiDummy();
     }
 
-    private void loadLaporanDonasi() {
-        Cursor cursor = databaseHelper.getAllDonasi();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                String nama = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAMA));
-                String jumlahDonasi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_JUMLAH_DONASI));
-                laporanDonasiList.add(nama + " - Jumlah Donasi: " + jumlahDonasi);
-            }
-            cursor.close();
-        }
+    private void loadLaporanDonasiDummy() {
+        // Data dummy untuk simulasi laporan donasi
+        laporanDonasiList.clear();
+        laporanDonasiList.add("Donasi Kesehatan A - Jumlah Donasi: Rp 750.000");
+        laporanDonasiList.add("Donasi Kemanusiaan B - Jumlah Donasi: Rp 1.250.000");
+        laporanDonasiList.add("Donasi Pendidikan C - Jumlah Donasi: Rp 500.000");
 
         // Set adapter untuk ListView
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, laporanDonasiList);

@@ -20,46 +20,46 @@
         android:theme="@style/Theme.PolinelaPeduli"
         tools:targetApi="31">
         <activity
-            android:name=".LaporanDonasiActivity"
+            android:name=".activity.LaporanDonasiActivity"
             android:exported="false" />
         <activity
-            android:name=".RiwayatTransaksiActivity"
+            android:name=".activity.RiwayatTransaksiActivity"
             android:exported="false" />
         <activity
-            android:name=".ProfileActivity"
+            android:name=".activity.ProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".EditDonasiActivity"
+            android:name=".activity.EditDonasiActivity"
             android:exported="false" />
         <activity
-            android:name=".TambahDonasiActivity"
+            android:name=".activity.TambahDonasiActivity"
             android:exported="false" />
         <activity
-            android:name=".KesehatanActivity"
+            android:name=".activity.KesehatanActivity"
             android:exported="false" />
         <activity
-            android:name=".BencanaActivity"
+            android:name=".activity.BencanaActivity"
             android:exported="false" />
         <activity
-            android:name=".PendidikanActivity"
+            android:name=".activity.PendidikanActivity"
             android:exported="false" />
         <activity
-            android:name=".KemanusiaanActivity"
+            android:name=".activity.KemanusiaanActivity"
             android:exported="false" />
         <activity
-            android:name=".HomeActivity"
+            android:name=".activity.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".ForgotPasswordActivity"
+            android:name=".activity.ForgotPasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".SignUpActivity"
+            android:name=".activity.SignUpActivity"
             android:exported="false" />
         <activity
-            android:name=".SignInActivity"
+            android:name=".activity.SignInActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

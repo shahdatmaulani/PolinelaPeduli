@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:background="@drawable/pic8"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
     <!-- Linear Layout for Images arranged in Grid -->
     <GridLayout

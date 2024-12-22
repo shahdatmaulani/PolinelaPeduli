@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:background="@color/white"
-    tools:context=".KemanusiaanActivity">
+    tools:context=".activity.KemanusiaanActivity">
 
     <ListView
         android:id="@+id/listView"

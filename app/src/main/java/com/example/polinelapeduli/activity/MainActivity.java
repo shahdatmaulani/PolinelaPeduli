@@ -1,11 +1,12 @@
-package com.example.polinelapeduli;
+package com.example.polinelapeduli.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.polinelapeduli.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,12 +19,9 @@ public class MainActivity extends AppCompatActivity {
         Button signInButton = findViewById(R.id.signInButton);
 
         // Aksi untuk tombol Sign In
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, SignInActivity.class);
-                startActivity(intent);
-            }
+        signInButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SignInActivity.class);
+            startActivity(intent);
         });
     }
 }
