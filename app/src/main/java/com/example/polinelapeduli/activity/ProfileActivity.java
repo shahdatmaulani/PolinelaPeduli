@@ -20,6 +20,10 @@ import com.example.polinelapeduli.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView textViewName, textViewEmail;
@@ -85,7 +89,9 @@ public class ProfileActivity extends AppCompatActivity {
             if (user != null) {
                 User dbUser = userRepository.getUserByEmail(user.getEmail());
                 if (dbUser != null) {
+                    String timeUpdate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                     dbUser.setProfilePicture(imageUri.toString());
+                    dbUser.setUpdatedAt(timeUpdate);
                     userRepository.updateUser(dbUser);
                 }
             }
