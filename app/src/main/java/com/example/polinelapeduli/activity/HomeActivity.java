@@ -16,6 +16,7 @@ import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.UserRepository;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -81,7 +82,11 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             bottomNavigationView.inflateMenu(R.menu.bottom_nav_user);
         }
+        // Set label visibility mode
+        bottomNavigationView.setLabelVisibilityMode(NavigationBarView.LABEL_VISIBILITY_SELECTED);
     }
+
+
 
     private void setHeaderWelcome(String fullName) {
         headerWelcome.setText(String.format("Welcome%s!", fullName != null ? ", " + fullName : ""));
@@ -116,8 +121,10 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
+        bottomNavigationView.setLabelVisibilityMode(NavigationBarView.LABEL_VISIBILITY_SELECTED);
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
     }
+
 
     private void openCategoryActivity(Class<?> activityClass) {
         Intent intent = new Intent(HomeActivity.this, activityClass);
