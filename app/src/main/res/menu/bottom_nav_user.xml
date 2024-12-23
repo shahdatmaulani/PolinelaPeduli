@@ -2,11 +2,11 @@
     <item
         android:id="@+id/home"
         android:title="Home"
-        android:icon="@drawable/pic20" />
+        android:icon="@drawable/pic16" />
     <item
         android:id="@+id/riwayat_transaksi"
         android:title="Riwayat Transaksi"
-        android:icon="@drawable/pic18" />
+        android:icon="@drawable/history" />
     <item
         android:id="@+id/profile"
         android:title="Profil"
