@@ -59,7 +59,7 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
         EditText etJumlahDonasi = convertView.findViewById(R.id.etJumlahDonasi);
 
         if (donation != null) {
-            Log.d("DonasiAdapter", "Setting data for position " + position + ": " + donation.toString());
+            Log.d("DonasiAdapter", "Setting data for position " + position + ": " + donation);
             // Set data ke UI
             tvNamaDonasi.setText(donation.getName());
             tvDeskripsiDonasi.setText(donation.getDescription());

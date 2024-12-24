@@ -155,6 +155,24 @@ public class TambahDonasiActivity extends AppCompatActivity {
         boolean isInserted = donationRepository.insertDonation(donation);
 
         if (isInserted) {
+            Intent intent;
+            switch (selectedCategory.getName()) {
+                case "Bencana":
+                    intent = new Intent(this, BencanaActivity.class);
+                    break;
+                case "Pendidikan":
+                    intent = new Intent(this, PendidikanActivity.class);
+                    break;
+                case "Kesehatan":
+                    intent = new Intent(this, KesehatanActivity.class);
+                    break;
+                case "Kemanusiaan":
+                    intent = new Intent(this, KemanusiaanActivity.class);
+                    break;
+                default:
+                    return;
+            }
+            startActivity(intent);
             Toast.makeText(this, "Donasi berhasil disimpan", Toast.LENGTH_SHORT).show();
             finish();
         } else {
