@@ -15,14 +15,19 @@ public class InputValidator {
         return text;
     }
 
-    public static Integer getValidatedNumber(EditText editText, String errorMessage) {
+    public static Integer getValidatedNumberWithMinValue(EditText editText, String emptyErrorMessage, String minErrorMessage, int minValue) {
         String text = editText.getText().toString().trim();
         if (TextUtils.isEmpty(text)) {
-            setErrorAndFocus(editText, errorMessage);
+            setErrorAndFocus(editText, emptyErrorMessage);
             return null;
         }
         try {
-            return Integer.parseInt(text);
+            int value = Integer.parseInt(text);
+            if (value < minValue) {
+                setErrorAndFocus(editText, minErrorMessage);
+                return null;
+            }
+            return value;
         } catch (NumberFormatException e) {
             setErrorAndFocus(editText, "Input must be a valid number");
             return null;

@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.Donation;
 import com.example.polinelapeduli.repository.DonationRepository;
+import com.example.polinelapeduli.utils.InputValidator;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -80,16 +81,13 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
     }
 
     private void handleDonationClick(EditText etJumlahDonasi) {
-        String jumlahDonasiStr = etJumlahDonasi.getText().toString();
-        if (jumlahDonasiStr.isEmpty()) {
-            Toast.makeText(context, "Masukkan jumlah donasi terlebih dahulu", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        int jumlahDonasi = Integer.parseInt(jumlahDonasiStr);
-        if (jumlahDonasi < 1000) {
-            Toast.makeText(context, "Jumlah donasi minimal Rp 1.000", Toast.LENGTH_SHORT).show();
-        } else {
+        Integer jumlahDonasi = InputValidator.getValidatedNumberWithMinValue(
+                etJumlahDonasi,
+                "Donasi tidak boleh kosong",
+                "Jumlah donasi minimal Rp 1.000",
+                1000
+        );
+        if (jumlahDonasi != null) {
             Toast.makeText(context, "Terima kasih atas donasi sebesar Rp " + jumlahDonasi, Toast.LENGTH_SHORT).show();
         }
     }

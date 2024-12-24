@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.Category;
 import com.example.polinelapeduli.model.Donation;
+import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.CategoryRepository;
 import com.example.polinelapeduli.repository.DonationRepository;
 import com.example.polinelapeduli.repository.UserRepository;
@@ -49,7 +50,6 @@ public class TambahDonasiActivity extends AppCompatActivity {
     private Spinner spinnerKategori;
     private ImageView imageViewDonasi;
     private TextView tvStatusGambar;
-    private FirebaseAuth mAuth;
     private DonationRepository donationRepository;
     private CategoryRepository categoryRepository;
 
@@ -62,11 +62,23 @@ public class TambahDonasiActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tambah_donasi);
 
-        mAuth = FirebaseAuth.getInstance();
+        // Inisialisasi Firebase Auth dan UserRepository
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
         UserRepository userRepository = new UserRepository(this);
 
+        // Cek apakah data pengguna ada, sudah login, dan aktif
         FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        // Pastikan pengguna sudah login
         if (firebaseUser == null) {
+            redirectToSignIn();
+            return;
+        }
+
+        // Ambil data pengguna berdasarkan email
+        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
+
+        // Pastikan data pengguna ditemukan dan pengguna aktif
+        if (userLogin == null || !userLogin.isActive()) {
             redirectToSignIn();
             return;
         }
@@ -126,14 +138,14 @@ public class TambahDonasiActivity extends AppCompatActivity {
 
         String nama = InputValidator.getValidatedText(etNamaDonasi, "Nama donasi tidak boleh kosong");
         String deskripsi = InputValidator.getValidatedText(etDeskripsiDonasi, "Deskripsi donasi tidak boleh kosong");
-        Integer target = InputValidator.getValidatedNumber(etTargetDonasi, "Target donasi harus berupa angka");
+        Integer target = InputValidator.getValidatedNumberWithMinValue(
+                etTargetDonasi,
+                "Masukkan target tidak boleh kosong",
+                "Jumlah target minimal Rp 1.000",
+                1000
+        );
 
         if (nama == null || deskripsi == null || target == null) return;
-
-        if (spinnerKategori.getSelectedItem().toString().equals("Pilih Kategori")) {
-            Toast.makeText(this, "Kategori harus dipilih", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         Category selectedCategory = (Category) spinnerKategori.getSelectedItem();
         String imagePath = tvStatusGambar.getText().toString().trim();
