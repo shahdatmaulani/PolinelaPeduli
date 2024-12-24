@@ -174,7 +174,7 @@ public class UserRepository {
     public boolean softDeleteUser(int userId) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
-            values.put(DatabaseHelper.COLUMN_IS_ACTIVE, 0); // Set isActive to 0 (false)
+            values.put(DatabaseHelper.COLUMN_IS_ACTIVE, 0);
 
             int rowsAffected = database.update(DatabaseHelper.TABLE_USERS, values,
                     DatabaseHelper.COLUMN_USER_ID + " = ?",

@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.example.polinelapeduli.model.Donation;
+import com.example.polinelapeduli.utils.CurrentTime;
 import com.example.polinelapeduli.utils.Enum.EStatus;
 
 import java.util.ArrayList;
@@ -161,6 +162,7 @@ public class DonationRepository {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_IS_ACTIVE, 0);
+            values.put(DatabaseHelper.COLUMN_UPDATED_AT, CurrentTime.getCurrentTime());
 
             int rowsAffected = database.update(DatabaseHelper.TABLE_DONATIONS, values,
                     DatabaseHelper.COLUMN_DONATION_ID + " = ?",
