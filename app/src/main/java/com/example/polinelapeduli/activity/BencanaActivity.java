@@ -14,9 +14,7 @@ import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.Donation;
 import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.DonationRepository;
-import com.example.polinelapeduli.repository.UserRepository;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.polinelapeduli.utils.UserValidator;
 
 import java.util.ArrayList;
 
@@ -26,6 +24,7 @@ public class BencanaActivity extends AppCompatActivity {
     private ArrayList<Donation> donationList;
     private DonasiAdapter donasiAdapter;
     private DonationRepository donationRepository;
+    private String userRole;
 
 
     @Override
@@ -33,26 +32,15 @@ public class BencanaActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bencana);
 
-        // Inisialisasi Firebase Auth dan UserRepository
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        UserRepository userRepository = new UserRepository(this);
-
-        // Cek apakah data pengguna ada, sudah login, dan aktif
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        // Pastikan pengguna sudah login
-        if (firebaseUser == null) {
-            redirectToSignIn();
+        // Validasi pengguna
+        User userLogin = UserValidator.validateUser(this);
+        if (userLogin == null) {
+            finish(); // Jika tidak valid, tutup aktivitas
             return;
         }
 
-        // Ambil data pengguna berdasarkan email
-        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
-
-        // Pastikan data pengguna ditemukan dan pengguna aktif
-        if (userLogin == null || !userLogin.isActive()) {
-            redirectToSignIn();
-            return;
-        }
+        // Dapatkan role pengguna
+        userRole = userLogin.getRole().toString();
 
         // Inisialisasi komponen
         listView = findViewById(R.id.listView);
@@ -81,14 +69,8 @@ public class BencanaActivity extends AppCompatActivity {
         donationList.clear();
         donationList.addAll(donationRepository.getAllDonationsWithCategory("Bencana"));
 
-        donasiAdapter = new DonasiAdapter(this, donationList);
+        donasiAdapter = new DonasiAdapter(this, donationList, userRole);
         listView.setAdapter(donasiAdapter);
-    }
-
-    private void redirectToSignIn() {
-        Intent intent = new Intent(BencanaActivity.this, SignInActivity.class);
-        startActivity(intent);
-        finish();
     }
 
     // Tampilkan dialog opsi edit atau hapus

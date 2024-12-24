@@ -12,7 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.Donation;
+import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.DonationRepository;
+import com.example.polinelapeduli.utils.UserValidator;
 
 import java.util.ArrayList;
 
@@ -22,11 +24,22 @@ public class KemanusiaanActivity extends AppCompatActivity {
     private ArrayList<Donation> donationList;
     private DonasiAdapter donasiAdapter;
     private DonationRepository donationRepository;
+    private String userRole;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kemanusiaan);
+
+        // Validasi pengguna
+        User userLogin = UserValidator.validateUser(this);
+        if (userLogin == null) {
+            finish(); // Jika tidak valid, tutup aktivitas
+            return;
+        }
+
+        // Dapatkan role pengguna
+        userRole = userLogin.getRole().toString();
 
         // Inisialisasi komponen
         listView = findViewById(R.id.listView);
@@ -55,7 +68,7 @@ public class KemanusiaanActivity extends AppCompatActivity {
         donationList.clear();
         donationList.addAll(donationRepository.getAllDonationsWithCategory("Kemanusiaan"));
 
-        donasiAdapter = new DonasiAdapter(this, donationList);
+        donasiAdapter = new DonasiAdapter(this, donationList, userRole);
         listView.setAdapter(donasiAdapter);
     }
 

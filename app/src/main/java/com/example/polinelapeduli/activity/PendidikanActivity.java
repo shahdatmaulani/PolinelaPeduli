@@ -15,6 +15,7 @@ import com.example.polinelapeduli.model.Donation;
 import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.DonationRepository;
 import com.example.polinelapeduli.repository.UserRepository;
+import com.example.polinelapeduli.utils.UserValidator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -26,32 +27,22 @@ public class PendidikanActivity extends AppCompatActivity {
     private ArrayList<Donation> donationList;
     private DonasiAdapter donasiAdapter;
     private DonationRepository donationRepository;
+    private String userRole;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pendidikan);
 
-        // Inisialisasi Firebase Auth dan UserRepository
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        UserRepository userRepository = new UserRepository(this);
-
-        // Cek apakah data pengguna ada, sudah login, dan aktif
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        // Pastikan pengguna sudah login
-        if (firebaseUser == null) {
-            redirectToSignIn();
+        // Validasi pengguna
+        User userLogin = UserValidator.validateUser(this);
+        if (userLogin == null) {
+            finish(); // Jika tidak valid, tutup aktivitas
             return;
         }
 
-        // Ambil data pengguna berdasarkan email
-        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
-
-        // Pastikan data pengguna ditemukan dan pengguna aktif
-        if (userLogin == null || !userLogin.isActive()) {
-            redirectToSignIn();
-            return;
-        }
+        // Dapatkan role pengguna
+        userRole = userLogin.getRole().toString();
 
         // Inisialisasi komponen
         listView = findViewById(R.id.listView);
@@ -80,7 +71,7 @@ public class PendidikanActivity extends AppCompatActivity {
         donationList.clear();
         donationList.addAll(donationRepository.getAllDonationsWithCategory("Pendidikan"));
 
-        donasiAdapter = new DonasiAdapter(this, donationList);
+        donasiAdapter = new DonasiAdapter(this, donationList, userRole);
         listView.setAdapter(donasiAdapter);
     }
 

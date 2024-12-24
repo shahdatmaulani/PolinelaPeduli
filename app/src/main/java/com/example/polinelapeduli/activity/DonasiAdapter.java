@@ -34,11 +34,11 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
     private final String userRole;
     private final DonationRepository donationRepository;
 
-    public DonasiAdapter(@NonNull Context context, @NonNull ArrayList<Donation> donationList) {
+    public DonasiAdapter(@NonNull Context context, @NonNull ArrayList<Donation> donationList, String userRole) {
         super(context, 0, donationList);
         this.context = context;
         this.donationList = donationList;
-        this.userRole = "USER"; // Default user role
+        this.userRole = userRole; // Default user role
         this.donationRepository = new DonationRepository(context); // Initialize DonationRepository
     }
 
