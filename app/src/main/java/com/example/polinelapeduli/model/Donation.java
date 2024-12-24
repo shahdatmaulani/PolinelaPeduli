@@ -9,6 +9,7 @@ public class Donation {
     private String name;
     private String description;
     private int categoryId;
+    private String categoryName; // Nama kategori (baru)
     private int target;
     private String image;
     private EStatus status;
@@ -16,9 +17,10 @@ public class Donation {
     private String createdAt;
     private String updatedAt;
 
-    // Constructor, Getters, and Setters
+    // Constructor kosong
     public Donation() {}
 
+    // Constructor lengkap
     public Donation(int donationId, String name, String description, int categoryId, int target, String image, EStatus status, boolean isActive, String createdAt, String updatedAt) {
         this.donationId = donationId;
         this.name = name;
@@ -32,7 +34,7 @@ public class Donation {
         this.updatedAt = updatedAt;
     }
 
-    // Getters and setters for all fields...
+    // Getters dan Setters
     public int getDonationId() {
         return donationId;
     }
@@ -63,6 +65,14 @@ public class Donation {
 
     public void setCategoryId(int categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() { // Getter untuk nama kategori
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) { // Setter untuk nama kategori
+        this.categoryName = categoryName;
     }
 
     public int getTarget() {
@@ -121,6 +131,7 @@ public class Donation {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", categoryId=" + categoryId +
+                ", categoryName='" + categoryName + '\'' +
                 ", target=" + target +
                 ", image='" + image + '\'' +
                 ", status=" + status +

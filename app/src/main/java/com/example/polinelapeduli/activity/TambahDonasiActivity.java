@@ -1,6 +1,7 @@
 package com.example.polinelapeduli.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -8,159 +9,236 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.polinelapeduli.R;
+import com.example.polinelapeduli.model.Category;
+import com.example.polinelapeduli.model.Donation;
+import com.example.polinelapeduli.repository.CategoryRepository;
+import com.example.polinelapeduli.repository.DonationRepository;
+import com.example.polinelapeduli.repository.UserRepository;
+import com.example.polinelapeduli.utils.CurrentTime;
+import com.example.polinelapeduli.utils.Enum.EStatus;
+import com.example.polinelapeduli.utils.InputValidator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Objects;
 
 public class TambahDonasiActivity extends AppCompatActivity {
 
     private EditText etNamaDonasi, etDeskripsiDonasi, etTargetDonasi;
-    private RadioGroup radioGroupKategori;
+    private Spinner spinnerKategori;
     private ImageView imageViewDonasi;
     private TextView tvStatusGambar;
-    private Button btnPilihGambar, btnSimpanDonasi;
-    private String gambarPath;
+    private FirebaseAuth mAuth;
+    private DonationRepository donationRepository;
+    private CategoryRepository categoryRepository;
+    private UserRepository userRepository;
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES = 2;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+
+    private static final int PERMISSION_REQUEST_READ_IMAGES = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tambah_donasi);
 
+        // Inisialisasi Firebase Auth dan UserRepository
+        mAuth = FirebaseAuth.getInstance();
+        userRepository = new UserRepository(this);
+
+        // Cek apakah pengguna sudah login
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser == null) {
+            redirectToSignIn();
+            return;
+        }
+
+        donationRepository = new DonationRepository(this);
+        categoryRepository = new CategoryRepository(this);
+
+        initializeUI();
+        setupImagePickerLauncher();
+        loadCategoriesIntoSpinner();
+    }
+
+    private void initializeUI() {
         etNamaDonasi = findViewById(R.id.etNamaDonasi);
         etDeskripsiDonasi = findViewById(R.id.etDeskripsiDonasi);
         etTargetDonasi = findViewById(R.id.etTargetDonasi);
-        radioGroupKategori = findViewById(R.id.radioGroupKategori);
+        spinnerKategori = findViewById(R.id.spinnerKategori);
         imageViewDonasi = findViewById(R.id.imageViewDonasi);
         tvStatusGambar = findViewById(R.id.tvStatusGambar);
-        btnPilihGambar = findViewById(R.id.btnPilihGambar);
-        btnSimpanDonasi = findViewById(R.id.btnSimpanDonasi);
+        Button btnPilihGambar = findViewById(R.id.btnPilihGambar);
+        Button btnSimpanDonasi = findViewById(R.id.btnSimpanDonasi);
 
         btnPilihGambar.setOnClickListener(v -> chooseImage());
-
         btnSimpanDonasi.setOnClickListener(v -> saveDonation());
+    }
+
+    private void redirectToSignIn() {
+        Intent intent = new Intent(TambahDonasiActivity.this, SignInActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void setupImagePickerLauncher() {
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri selectedImageUri = result.getData().getData();
+                        handleSelectedImage(selectedImageUri);
+                    }
+                }
+        );
+    }
+
+    private void loadCategoriesIntoSpinner() {
+        List<Category> categoryList = categoryRepository.getAllCategoryObjects();
+        ArrayAdapter<Category> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerKategori.setAdapter(adapter);
+    }
+
+    private void saveDonation() {
+        if (tvStatusGambar.getText().toString().equals("File belum dipilih")) {
+            Toast.makeText(this, "Harap pilih gambar terlebih dahulu", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String nama = InputValidator.getValidatedText(etNamaDonasi, "Nama donasi tidak boleh kosong");
+        String deskripsi = InputValidator.getValidatedText(etDeskripsiDonasi, "Deskripsi donasi tidak boleh kosong");
+        Integer target = InputValidator.getValidatedNumber(etTargetDonasi, "Target donasi harus berupa angka");
+
+        if (nama == null || deskripsi == null || target == null) return;
+
+        if (spinnerKategori.getSelectedItem().toString().equals("Pilih Kategori")) {
+            Toast.makeText(this, "Kategori harus dipilih", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Category selectedCategory = (Category) spinnerKategori.getSelectedItem();
+        String imagePath = tvStatusGambar.getText().toString().replace("File dipilih: ", "").trim();
+
+        Donation donation = createDonation(nama, deskripsi, target, imagePath, selectedCategory);
+
+        boolean isInserted = donationRepository.insertDonation(donation);
+
+        if (isInserted) {
+            Toast.makeText(this, "Donasi berhasil disimpan", Toast.LENGTH_SHORT).show();
+            finish();
+        } else {
+            Toast.makeText(this, "Gagal menyimpan donasi", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Donation createDonation(String nama, String deskripsi, int target, String imagePath, Category selectedCategory) {
+        Donation donation = new Donation();
+        donation.setName(nama);
+        donation.setDescription(deskripsi);
+        donation.setCategoryId(selectedCategory.getCategoryId());
+        donation.setCategoryName(selectedCategory.getName());
+        donation.setTarget(target);
+        donation.setImage(imagePath);
+        donation.setStatus(EStatus.AKTIF);
+        donation.setActive(true);
+        donation.setCreatedAt(CurrentTime.getCurrentTime());
+        donation.setUpdatedAt("");
+        return donation;
     }
 
     private void chooseImage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_MEDIA_IMAGES},
-                        MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES);
-            } else {
-                openImagePicker();
-            }
+            checkPermission(Manifest.permission.READ_MEDIA_IMAGES);
         } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES);
-            } else {
-                openImagePicker();
+            checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+    }
+
+    private void checkPermission(String permission) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                Toast.makeText(this, "Izin diperlukan untuk memilih gambar", Toast.LENGTH_SHORT).show();
             }
+            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_REQUEST_READ_IMAGES);
+        } else {
+            openImagePicker();
         }
     }
 
     private void openImagePicker() {
-        Intent intent = new Intent();
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Pilih Gambar"), PICK_IMAGE_REQUEST);
+        imagePickerLauncher.launch(Intent.createChooser(intent, "Pilih Gambar"));
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            Uri imageUri = data.getData();
-            gambarPath = saveImageToInternalStorage(imageUri);
-            if (gambarPath != null) {
-                imageViewDonasi.setImageURI(imageUri);
-                tvStatusGambar.setText("File dipilih: " + getFileName(imageUri));
-            } else {
-                Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
-            }
+    @SuppressLint("SetTextI18n")
+    private void handleSelectedImage(Uri uri) {
+        String imagePath = saveImageToInternalStorage(uri);
+        if (imagePath != null) {
+            imageViewDonasi.setImageURI(uri);
+            tvStatusGambar.setText("File dipilih: " + getFileName(uri));
+        } else {
+            Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
         }
     }
 
     private String getFileName(Uri uri) {
-        String result = null;
-        if (uri.getScheme().equals("content")) {
+        if (Objects.equals(uri.getScheme(), "content")) {
             try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+                    return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
                 }
             }
         }
-        if (result == null) {
-            result = uri.getPath();
-            int cut = result.lastIndexOf('/');
-            if (cut != -1) {
-                result = result.substring(cut + 1);
-            }
+        String path = uri.getPath();
+        if (path != null) {
+            int cut = path.lastIndexOf('/');
+            return cut != -1 ? path.substring(cut + 1) : path;
         }
-        return result;
+        return "Unknown File";
     }
 
     private String saveImageToInternalStorage(Uri uri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(uri);
-            File file = new File(getFilesDir(), getFileName(uri));
-            try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = inputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, length);
-                }
+        try (InputStream inputStream = getContentResolver().openInputStream(uri);
+             FileOutputStream outputStream = new FileOutputStream(new File(getFilesDir(), getFileName(uri)))) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = Objects.requireNonNull(inputStream).read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
             }
-            inputStream.close();
-            return file.getAbsolutePath();
+            return getFilesDir() + File.separator + getFileName(uri);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("TambahDonasiActivity", "Error", e);
             return null;
         }
-    }
-
-    private void saveDonation() {
-        String nama = etNamaDonasi.getText().toString();
-        String deskripsi = etDeskripsiDonasi.getText().toString();
-        String kategori = getSelectedCategory();
-        int target = Integer.parseInt(etTargetDonasi.getText().toString());
-
-        // Simulasi penyimpanan data
-        Toast.makeText(this, "Donasi berhasil disimpan:\nNama: " + nama + "\nKategori: " + kategori + "\nTarget: Rp " + target, Toast.LENGTH_SHORT).show();
-        finish();
-    }
-
-    private String getSelectedCategory() {
-        int selectedId = radioGroupKategori.getCheckedRadioButtonId();
-        RadioButton radioButton = findViewById(selectedId);
-        return radioButton.getText().toString();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES) {
+        if (requestCode == PERMISSION_REQUEST_READ_IMAGES) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openImagePicker();
             } else {

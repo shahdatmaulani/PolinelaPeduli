@@ -6,7 +6,6 @@ public class Category {
     private int categoryId;
     private String name;
 
-    // Constructor, Getters, and Setters
     public Category() {}
 
     public Category(int categoryId, String name) {
@@ -14,7 +13,11 @@ public class Category {
         this.name = name;
     }
 
-    // Getters and setters for all fields...
+    public Category(String name) {
+        this.name = name;
+    }
+
+    // Getters and setters
     public String getName() {
         return name;
     }
@@ -34,10 +37,19 @@ public class Category {
     @Override
     @NotNull
     public String toString() {
-        return "Category{" +
-                "categoryId=" + categoryId +
-                ", name='" + name + '\'' +
-                '}';
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Category category = (Category) o;
+        return categoryId == category.categoryId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(categoryId);
     }
 }
-

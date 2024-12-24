@@ -13,14 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.UserRepository;
+import com.example.polinelapeduli.utils.CurrentTime;
 import com.example.polinelapeduli.utils.Enum.ELoginMethod;
 import com.example.polinelapeduli.utils.Enum.ERole;
 import com.example.polinelapeduli.utils.InputValidator;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -74,7 +72,7 @@ public class SignUpActivity extends AppCompatActivity {
         String email = InputValidator.getValidatedEmail(etEmail);
         if (email == null) return;
 
-        if (!InputValidator.validatePassword(etPassword)) return;
+        if (InputValidator.validatePassword(etPassword)) return;
 
         if (!InputValidator.validateConfirmPassword(etConfirmPassword, etPassword)) return;
 
@@ -87,13 +85,11 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-
         // Firebase registration
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        handleSuccessfulRegistration(fullName, email, createdAt);
+                        handleSuccessfulRegistration(fullName, email, CurrentTime.getCurrentTime());
                     } else {
                         handleRegistrationFailure(task.getException());
                     }

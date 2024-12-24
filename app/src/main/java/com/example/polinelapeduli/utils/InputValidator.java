@@ -3,6 +3,7 @@ package com.example.polinelapeduli.utils;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 public class InputValidator {
 
@@ -15,6 +16,20 @@ public class InputValidator {
         return text;
     }
 
+    public static Integer getValidatedNumber(EditText editText, String errorMessage) {
+        String text = editText.getText().toString().trim();
+        if (TextUtils.isEmpty(text)) {
+            setErrorAndFocus(editText, errorMessage);
+            return null;
+        }
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            setErrorAndFocus(editText, "Input must be a valid number");
+            return null;
+        }
+    }
+
     public static String getValidatedEmail(EditText editText) {
         String email = editText.getText().toString().trim();
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -24,13 +39,22 @@ public class InputValidator {
         return email;
     }
 
+    public static boolean validateSpinnerSelection(Spinner spinner, String errorMessage) {
+        String selectedItem = spinner.getSelectedItem().toString();
+        if (TextUtils.isEmpty(selectedItem) || selectedItem.equalsIgnoreCase("Tidak ada kategori tersedia")) {
+            spinner.requestFocus();
+            return false;
+        }
+        return true;
+    }
+
     public static boolean validatePassword(EditText editText) {
         String password = editText.getText().toString().trim();
         if (TextUtils.isEmpty(password) || password.length() < 6) {
             setErrorAndFocus(editText, "Password must be at least 6 characters");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     public static boolean validateConfirmPassword(EditText editText, EditText etPassword) {

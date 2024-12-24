@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.UserRepository;
+import com.example.polinelapeduli.utils.CurrentTime;
 import com.example.polinelapeduli.utils.Enum.ELoginMethod;
 import com.example.polinelapeduli.utils.Enum.ERole;
 import com.example.polinelapeduli.utils.constants.Constants;
@@ -32,10 +33,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.Objects;
+
 
 public class SignInActivity extends AppCompatActivity {
 
@@ -59,7 +58,6 @@ public class SignInActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
-
         userRepository = new UserRepository(this);
         initializeFirebaseAuth();
         configureGoogleSignIn();
@@ -177,7 +175,7 @@ public class SignInActivity extends AppCompatActivity {
         newUser.setRole(Objects.equals(account.getEmail(), "adminpolinelapeduli@gmail.com") ? ERole.ADMIN : ERole.USER);
         newUser.setProfilePicture(account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : null);
         newUser.setActive(true);
-        newUser.setCreatedAt(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        newUser.setCreatedAt(CurrentTime.getCurrentTime());
 
         if (userRepository.insertUser(newUser)) {
             Log.i(TAG, "User inserted into database successfully");
@@ -188,7 +186,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private void signInWithEmail() {
         String email = InputValidator.getValidatedEmail(emailField);
-        if (email == null || !InputValidator.validatePassword(passwordField)) return;
+        if (email == null || InputValidator.validatePassword(passwordField)) return;
         String password = passwordField.getText().toString().trim();
 
         User existingUser = userRepository.getUserByEmail(email);
