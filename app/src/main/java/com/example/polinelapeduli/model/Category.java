@@ -17,7 +17,6 @@ public class Category {
         this.name = name;
     }
 
-    // Getters and setters
     public String getName() {
         return name;
     }

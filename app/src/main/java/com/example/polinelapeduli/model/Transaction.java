@@ -9,7 +9,6 @@ public class Transaction {
     private int amount;
     private String createdAt;
 
-    // Constructor, Getters, and Setters
     public Transaction() {}
 
     public Transaction(int transactionId, int userId, int donationId, int amount, String createdAt) {
@@ -20,7 +19,6 @@ public class Transaction {
         this.createdAt = createdAt;
     }
 
-    // Getters and setters for all fields...
     public int getTransactionId() {
         return transactionId;
     }

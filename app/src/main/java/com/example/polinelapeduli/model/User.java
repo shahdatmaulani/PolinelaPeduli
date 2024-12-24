@@ -16,7 +16,6 @@ public class User {
     private String createdAt;
     private String updatedAt;
 
-    // Constructor, Getters, and Setters
     public User() {}
 
     public User(int userId, String fullName, String email, ELoginMethod loginMethod, ERole role, String profilePicture, boolean isActive, String createdAt, String updatedAt) {
@@ -31,7 +30,6 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
-    // Getters and setters for all fields...
     public int getUserId() {
         return userId;
     }

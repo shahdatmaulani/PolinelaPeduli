@@ -34,31 +34,26 @@ public class PendidikanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pendidikan);
 
-        // Validasi pengguna
         User userLogin = UserValidator.validateUser(this);
         if (userLogin == null) {
-            finish(); // Jika tidak valid, tutup aktivitas
+            finish();
             return;
         }
 
-        // Dapatkan role pengguna
         userRole = userLogin.getRole().toString();
 
-        // Inisialisasi komponen
         listView = findViewById(R.id.listView);
         donationList = new ArrayList<>();
         donationRepository = new DonationRepository(this);
 
-        // Tambahkan header jika ada
         @SuppressLint("InflateParams") View headerView = getLayoutInflater().inflate(R.layout.activity_pendidikan_header, null);
         listView.addHeaderView(headerView);
 
-        // Muat data donasi berdasarkan kategori
         loadDonationsByCategory();
 
-        // Set event long click pada ListView
+
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            if (position > 0) { // Abaikan header
+            if (position > 0) { //Ignore Header
                 final Donation selectedDonation = donationList.get(position - 1);
                 showOptionsDialog(selectedDonation);
             }
@@ -66,7 +61,6 @@ public class PendidikanActivity extends AppCompatActivity {
         });
     }
 
-    // Metode untuk memuat data donasi berdasarkan kategori
     private void loadDonationsByCategory() {
         donationList.clear();
         donationList.addAll(donationRepository.getAllDonationsWithCategory("Pendidikan"));
@@ -75,13 +69,6 @@ public class PendidikanActivity extends AppCompatActivity {
         listView.setAdapter(donasiAdapter);
     }
 
-    private void redirectToSignIn() {
-        Intent intent = new Intent(PendidikanActivity.this, SignInActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    // Tampilkan dialog opsi edit atau hapus
     private void showOptionsDialog(Donation selectedDonation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(PendidikanActivity.this);
         builder.setTitle("Pilih Opsi");
@@ -96,7 +83,6 @@ public class PendidikanActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // Metode untuk mengedit donasi
     private void editDonation(Donation donation) {
         Intent intent = new Intent(PendidikanActivity.this, EditDonasiActivity.class);
         intent.putExtra("id", donation.getDonationId());
@@ -107,7 +93,6 @@ public class PendidikanActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    // Metode untuk menghapus donasi
     private void deleteDonation(Donation donation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(PendidikanActivity.this);
         builder.setTitle("Konfirmasi Hapus");
@@ -129,6 +114,6 @@ public class PendidikanActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadDonationsByCategory(); // Refresh data saat kembali ke aktivitas
+        loadDonationsByCategory();
     }
 }

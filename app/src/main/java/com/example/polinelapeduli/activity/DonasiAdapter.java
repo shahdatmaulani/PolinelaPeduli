@@ -38,8 +38,8 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
         super(context, 0, donationList);
         this.context = context;
         this.donationList = donationList;
-        this.userRole = userRole; // Default user role
-        this.donationRepository = new DonationRepository(context); // Initialize DonationRepository
+        this.userRole = userRole;
+        this.donationRepository = new DonationRepository(context);
     }
 
     @NonNull
@@ -51,6 +51,11 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
             convertView = LayoutInflater.from(context).inflate(R.layout.item_donasi, parent, false);
         }
 
+        setupView(convertView, donation, position);
+        return convertView;
+    }
+
+    private void setupView(View convertView, Donation donation, int position) {
         TextView tvNamaDonasi = convertView.findViewById(R.id.tvNamaDonasi);
         TextView tvDeskripsiDonasi = convertView.findViewById(R.id.tvDeskripsiDonasi);
         TextView tvTargetDonasi = convertView.findViewById(R.id.tvTargetDonasi);
@@ -60,26 +65,20 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
 
         if (donation != null) {
             Log.d("DonasiAdapter", "Setting data for position " + position + ": " + donation);
-            // Set data ke UI
+
             tvNamaDonasi.setText(donation.getName());
             tvDeskripsiDonasi.setText(donation.getDescription());
             tvTargetDonasi.setText(formatCurrency(donation.getTarget()));
 
-            // Load gambar dengan Glide
             Glide.with(context)
                     .load(donation.getImage())
                     .placeholder(R.drawable.placeholder)
                     .error(R.drawable.error)
                     .into(imageViewDonasi);
 
-            // Tombol Donasi Sekarang
             btnDonasiSekarang.setOnClickListener(v -> handleDonationClick(etJumlahDonasi));
-
-            // Long click untuk admin
             convertView.setOnLongClickListener(v -> handleLongClick(donation));
         }
-
-        return convertView;
     }
 
     private void handleDonationClick(EditText etJumlahDonasi) {
@@ -89,6 +88,7 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
                 "Jumlah donasi minimal Rp 1.000",
                 1000
         );
+
         if (jumlahDonasi != null) {
             Toast.makeText(context, "Terima kasih atas donasi sebesar Rp " + jumlahDonasi, Toast.LENGTH_SHORT).show();
         }

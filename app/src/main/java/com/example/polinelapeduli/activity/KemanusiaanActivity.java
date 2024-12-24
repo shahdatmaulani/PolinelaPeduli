@@ -31,31 +31,25 @@ public class KemanusiaanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kemanusiaan);
 
-        // Validasi pengguna
         User userLogin = UserValidator.validateUser(this);
         if (userLogin == null) {
-            finish(); // Jika tidak valid, tutup aktivitas
+            finish();
             return;
         }
 
-        // Dapatkan role pengguna
         userRole = userLogin.getRole().toString();
 
-        // Inisialisasi komponen
         listView = findViewById(R.id.listView);
         donationList = new ArrayList<>();
         donationRepository = new DonationRepository(this);
 
-        // Tambahkan header jika ada
         @SuppressLint("InflateParams") View headerView = getLayoutInflater().inflate(R.layout.activity_kemanusiaan_header, null);
         listView.addHeaderView(headerView);
 
-        // Muat data donasi berdasarkan kategori
         loadDonationsByCategory();
 
-        // Set event long click pada ListView
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            if (position > 0) { // Abaikan header
+            if (position > 0) {
                 final Donation selectedDonation = donationList.get(position - 1);
                 showOptionsDialog(selectedDonation);
             }
@@ -63,7 +57,6 @@ public class KemanusiaanActivity extends AppCompatActivity {
         });
     }
 
-    // Metode untuk memuat data donasi berdasarkan kategori
     private void loadDonationsByCategory() {
         donationList.clear();
         donationList.addAll(donationRepository.getAllDonationsWithCategory("Kemanusiaan"));
@@ -72,7 +65,6 @@ public class KemanusiaanActivity extends AppCompatActivity {
         listView.setAdapter(donasiAdapter);
     }
 
-    // Tampilkan dialog opsi edit atau hapus
     private void showOptionsDialog(Donation selectedDonation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(KemanusiaanActivity.this);
         builder.setTitle("Pilih Opsi");
@@ -87,7 +79,6 @@ public class KemanusiaanActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // Metode untuk mengedit donasi
     private void editDonation(Donation donation) {
         Intent intent = new Intent(KemanusiaanActivity.this, EditDonasiActivity.class);
         intent.putExtra("id", donation.getDonationId());
@@ -98,7 +89,6 @@ public class KemanusiaanActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    // Metode untuk menghapus donasi
     private void deleteDonation(Donation donation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(KemanusiaanActivity.this);
         builder.setTitle("Konfirmasi Hapus");
@@ -120,6 +110,6 @@ public class KemanusiaanActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadDonationsByCategory(); // Refresh data saat kembali ke aktivitas
+        loadDonationsByCategory();
     }
 }

@@ -15,10 +15,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inisialisasi tombol
         Button signInButton = findViewById(R.id.signInButton);
 
-        // Aksi untuk tombol Sign In
         signInButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SignInActivity.class);
             startActivity(intent);

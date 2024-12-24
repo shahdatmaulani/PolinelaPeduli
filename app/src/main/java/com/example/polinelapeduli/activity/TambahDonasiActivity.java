@@ -28,15 +28,12 @@ import androidx.core.content.ContextCompat;
 import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.model.Category;
 import com.example.polinelapeduli.model.Donation;
-import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.repository.CategoryRepository;
 import com.example.polinelapeduli.repository.DonationRepository;
-import com.example.polinelapeduli.repository.UserRepository;
 import com.example.polinelapeduli.utils.CurrentTime;
 import com.example.polinelapeduli.utils.Enum.EStatus;
 import com.example.polinelapeduli.utils.InputValidator;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.polinelapeduli.utils.UserValidator;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,7 +49,6 @@ public class TambahDonasiActivity extends AppCompatActivity {
     private TextView tvStatusGambar;
     private DonationRepository donationRepository;
     private CategoryRepository categoryRepository;
-
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     private static final int PERMISSION_REQUEST_READ_IMAGES = 2;
@@ -62,24 +58,8 @@ public class TambahDonasiActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tambah_donasi);
 
-        // Inisialisasi Firebase Auth dan UserRepository
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        UserRepository userRepository = new UserRepository(this);
-
-        // Cek apakah data pengguna ada, sudah login, dan aktif
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        // Pastikan pengguna sudah login
-        if (firebaseUser == null) {
-            redirectToSignIn();
-            return;
-        }
-
-        // Ambil data pengguna berdasarkan email
-        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
-
-        // Pastikan data pengguna ditemukan dan pengguna aktif
-        if (userLogin == null || !userLogin.isActive()) {
-            redirectToSignIn();
+        if (UserValidator.validateUser(this) == null) {
+            finish();
             return;
         }
 
@@ -105,12 +85,6 @@ public class TambahDonasiActivity extends AppCompatActivity {
         btnSimpanDonasi.setOnClickListener(v -> saveDonation());
     }
 
-    private void redirectToSignIn() {
-        Intent intent = new Intent(TambahDonasiActivity.this, SignInActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
     private void setupImagePickerLauncher() {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -125,7 +99,9 @@ public class TambahDonasiActivity extends AppCompatActivity {
 
     private void loadCategoriesIntoSpinner() {
         List<Category> categoryList = categoryRepository.getAllCategories();
-        ArrayAdapter<Category> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryList);
+        ArrayAdapter<Category> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, categoryList
+        );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerKategori.setAdapter(adapter);
     }
@@ -134,17 +110,14 @@ public class TambahDonasiActivity extends AppCompatActivity {
         String nama = InputValidator.getValidatedText(etNamaDonasi, "Nama donasi tidak boleh kosong");
         String deskripsi = InputValidator.getValidatedText(etDeskripsiDonasi, "Deskripsi donasi tidak boleh kosong");
         Integer target = InputValidator.getValidatedNumberWithMinValue(
-                etTargetDonasi,
-                "Masukkan target tidak boleh kosong",
-                "Jumlah target minimal Rp 1.000",
-                1000
+                etTargetDonasi, "Masukkan target tidak boleh kosong", "Jumlah target minimal Rp 1.000", 1000
         );
 
         if (nama == null || deskripsi == null || target == null) return;
 
         Category selectedCategory = (Category) spinnerKategori.getSelectedItem();
-
         String imagePath = tvStatusGambar.getText().toString().trim();
+
         if (imagePath.isEmpty() || imagePath.equalsIgnoreCase("No File Chosen")) {
             Toast.makeText(this, "Harap pilih gambar terlebih dahulu", Toast.LENGTH_SHORT).show();
             return;
@@ -152,29 +125,8 @@ public class TambahDonasiActivity extends AppCompatActivity {
 
         Donation donation = createDonation(nama, deskripsi, target, imagePath, selectedCategory);
 
-        boolean isInserted = donationRepository.insertDonation(donation);
-
-        if (isInserted) {
-            Intent intent;
-            switch (selectedCategory.getName()) {
-                case "Bencana":
-                    intent = new Intent(this, BencanaActivity.class);
-                    break;
-                case "Pendidikan":
-                    intent = new Intent(this, PendidikanActivity.class);
-                    break;
-                case "Kesehatan":
-                    intent = new Intent(this, KesehatanActivity.class);
-                    break;
-                case "Kemanusiaan":
-                    intent = new Intent(this, KemanusiaanActivity.class);
-                    break;
-                default:
-                    return;
-            }
-            startActivity(intent);
-            Toast.makeText(this, "Donasi berhasil disimpan", Toast.LENGTH_SHORT).show();
-            finish();
+        if (donationRepository.insertDonation(donation)) {
+            navigateToCategoryActivity(selectedCategory);
         } else {
             Toast.makeText(this, "Gagal menyimpan donasi", Toast.LENGTH_SHORT).show();
         }
@@ -195,12 +147,34 @@ public class TambahDonasiActivity extends AppCompatActivity {
         return donation;
     }
 
-    private void chooseImage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            checkPermission(Manifest.permission.READ_MEDIA_IMAGES);
-        } else {
-            checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+    private void navigateToCategoryActivity(Category selectedCategory) {
+        Intent intent;
+        switch (selectedCategory.getName()) {
+            case "Bencana":
+                intent = new Intent(this, BencanaActivity.class);
+                break;
+            case "Pendidikan":
+                intent = new Intent(this, PendidikanActivity.class);
+                break;
+            case "Kesehatan":
+                intent = new Intent(this, KesehatanActivity.class);
+                break;
+            case "Kemanusiaan":
+                intent = new Intent(this, KemanusiaanActivity.class);
+                break;
+            default:
+                return;
         }
+        startActivity(intent);
+        Toast.makeText(this, "Donasi berhasil disimpan", Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    private void chooseImage() {
+        String permission = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+        checkPermission(permission);
     }
 
     private void checkPermission(String permission) {
@@ -225,8 +199,8 @@ public class TambahDonasiActivity extends AppCompatActivity {
         String imagePath = saveImageToInternalStorage(uri);
         if (imagePath != null) {
             imageViewDonasi.setImageURI(uri);
-            tvStatusGambar.setText(imagePath); // Simpan path lengkap di sini
-            Log.d("TambahDonasiActivity", "Image Path: " + imagePath); // Debug log
+            tvStatusGambar.setText(imagePath);
+            Log.d("TambahDonasiActivity", "Image Path: " + imagePath);
         } else {
             Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
         }
@@ -241,22 +215,22 @@ public class TambahDonasiActivity extends AppCompatActivity {
             }
         }
         String path = uri.getPath();
-        if (path != null) {
-            int cut = path.lastIndexOf('/');
-            return cut != -1 ? path.substring(cut + 1) : path;
-        }
-        return "Unknown File";
+        return (path != null && path.lastIndexOf('/') != -1)
+                ? path.substring(path.lastIndexOf('/') + 1)
+                : "Unknown File";
     }
 
     private String saveImageToInternalStorage(Uri uri) {
         try (InputStream inputStream = getContentResolver().openInputStream(uri);
              FileOutputStream outputStream = new FileOutputStream(new File(getFilesDir(), getFileName(uri)))) {
+
             byte[] buffer = new byte[1024];
             int length;
             while ((length = Objects.requireNonNull(inputStream).read(buffer)) > 0) {
                 outputStream.write(buffer, 0, length);
             }
             return getFilesDir() + File.separator + getFileName(uri);
+
         } catch (Exception e) {
             Log.e("TambahDonasiActivity", "Error", e);
             return null;
