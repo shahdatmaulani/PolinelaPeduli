@@ -18,6 +18,7 @@ import com.example.polinelapeduli.R;
 import com.example.polinelapeduli.repository.UserRepository;
 import com.example.polinelapeduli.model.User;
 import com.example.polinelapeduli.utils.CurrentTime;
+import com.example.polinelapeduli.utils.UserValidator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -35,35 +36,21 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Inisialisasi Firebase Auth dan UserRepository
+        User userLogin = UserValidator.validateUser(this);
+
+        if (userLogin == null) {
+            finish();
+            return;
+        }
+
         mAuth = FirebaseAuth.getInstance();
         userRepository = new UserRepository(this);
 
-        // Cek apakah data pengguna ada, sudah login, dan aktif
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        // Pastikan pengguna sudah login
-        if (firebaseUser == null) {
-            redirectToSignIn();
-            return;
-        }
-
-        // Ambil data pengguna berdasarkan email
-        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
-
-        // Pastikan data pengguna ditemukan dan pengguna aktif
-        if (userLogin == null || !userLogin.isActive()) {
-            redirectToSignIn();
-            return;
-        }
-
-        // Inisialisasi komponen tampilan
         initViews();
 
-        // Inisialisasi ActivityResultLauncher untuk memilih gambar
         initImagePickerLauncher();
 
-        // Memuat data pengguna dari database lokal
-        loadUserData(firebaseUser.getEmail());
+        loadUserData(userLogin.getEmail());
     }
 
     private void initViews() {
