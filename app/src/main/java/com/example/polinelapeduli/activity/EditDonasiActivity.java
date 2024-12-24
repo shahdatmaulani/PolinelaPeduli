@@ -1,6 +1,7 @@
 package com.example.polinelapeduli.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -8,187 +9,219 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.polinelapeduli.R;
+import com.example.polinelapeduli.repository.DonationRepository;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Objects;
 
 public class EditDonasiActivity extends AppCompatActivity {
 
-    private EditText editNama, editDeskripsi, editTarget;
-    private Button btnUpdate, btnPilihGambar;
+    private EditText etNamaDonasi, etDeskripsiDonasi, etTargetDonasi;
+    private Spinner spinnerStatusDonation;
     private ImageView imageViewDonasi;
     private TextView tvStatusGambar;
-    private String gambarPath;
-    private int donasiId;
-    private String kategoriDonasi;
+    private DonationRepository donationRepository;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES = 2;
+    private static final int PERMISSION_REQUEST_READ_IMAGES = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_donasi);
 
-        initViews();
-        loadDataFromIntent();
+        donationRepository = new DonationRepository(this);
 
-        btnPilihGambar.setOnClickListener(v -> chooseImage());
-        btnUpdate.setOnClickListener(v -> updateDonasi());
+        initializeUI();
+        setupImagePickerLauncher();
+        setupStatusSpinner();
+        loadDataFromIntent();
     }
 
-    private void initViews() {
-        editNama = findViewById(R.id.editNama);
-        editDeskripsi = findViewById(R.id.editDeskripsi);
-        editTarget = findViewById(R.id.editTarget);
-        btnUpdate = findViewById(R.id.btnUpdate);
+    private void initializeUI() {
+        etNamaDonasi = findViewById(R.id.etNamaDonasi);
+        etDeskripsiDonasi = findViewById(R.id.etDeskripsiDonasi);
+        etTargetDonasi = findViewById(R.id.etTargetDonasi);
+        spinnerStatusDonation = findViewById(R.id.spinnerStatusDonation);
         imageViewDonasi = findViewById(R.id.imageViewDonasi);
         tvStatusGambar = findViewById(R.id.tvStatusGambar);
-        btnPilihGambar = findViewById(R.id.btnPilihGambar);
+        Button btnPilihGambar = findViewById(R.id.btnPilihGambar);
+        Button btnUpdateDonasi = findViewById(R.id.btnUpdate);
+
+        btnPilihGambar.setOnClickListener(v -> chooseImage());
+        btnUpdateDonasi.setOnClickListener(v -> updateDonation());
+    }
+
+    private void setupImagePickerLauncher() {
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri selectedImageUri = result.getData().getData();
+                        handleSelectedImage(selectedImageUri);
+                    }
+                }
+        );
+    }
+
+    private void setupStatusSpinner() {
+        String[] statuses = {"AKTIF", "KOMPLET", "DITUTUP"};
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                statuses
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerStatusDonation.setAdapter(adapter);
     }
 
     private void loadDataFromIntent() {
         Intent intent = getIntent();
-        donasiId = intent.getIntExtra("id", -1);
-        String nama = intent.getStringExtra("nama");
-        String deskripsi = intent.getStringExtra("deskripsi");
+        int id = intent.getIntExtra("id", -1);
+        String name = intent.getStringExtra("nama");
+        String description = intent.getStringExtra("deskripsi");
         int target = intent.getIntExtra("target", 0);
-        kategoriDonasi = intent.getStringExtra("kategori");
+        String status = intent.getStringExtra("status");
+        String imagePath = intent.getStringExtra("gambar");
 
-        editNama.setText(nama);
-        editDeskripsi.setText(deskripsi);
-        editTarget.setText(String.valueOf(target));
-        setRadioButtonByCategory(kategoriDonasi);
+        Log.d("EditDonasiActivity", "Received data: " + id + ", " + name + ", " + status);
+
+        etNamaDonasi.setText(name);
+        etDeskripsiDonasi.setText(description);
+        etTargetDonasi.setText(String.valueOf(target));
+        if (imagePath != null) {
+            tvStatusGambar.setText(imagePath);
+            imageViewDonasi.setImageURI(Uri.fromFile(new File(imagePath)));
+        }
+
+        if (spinnerStatusDonation.getAdapter() instanceof ArrayAdapter) {
+            @SuppressWarnings("unchecked")
+            ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerStatusDonation.getAdapter();
+            int position = adapter.getPosition(status);
+            if (position != -1) {
+                spinnerStatusDonation.setSelection(position);
+            }
+        } else {
+            Toast.makeText(this, "Adapter tidak kompatibel", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void setRadioButtonByCategory(String kategori) {
-        switch (kategori) {
-            case "Bencana":
-                ((RadioButton) findViewById(R.id.rbBencanaEdit)).setChecked(true);
-                break;
-            case "Pendidikan":
-                ((RadioButton) findViewById(R.id.rbPendidikanEdit)).setChecked(true);
-                break;
-            case "Kesehatan":
-                ((RadioButton) findViewById(R.id.rbKesehatanEdit)).setChecked(true);
-                break;
-            case "Kemanusiaan":
-                ((RadioButton) findViewById(R.id.rbKemanusiaanEdit)).setChecked(true);
-                break;
+
+    private void updateDonation() {
+        String nama = etNamaDonasi.getText().toString().trim();
+        String deskripsi = etDeskripsiDonasi.getText().toString().trim();
+        String imagePath = tvStatusGambar.getText().toString().trim();
+        int target = Integer.parseInt(etTargetDonasi.getText().toString().trim());
+        String selectedStatus = spinnerStatusDonation.getSelectedItem().toString();
+
+        if (nama.isEmpty() || deskripsi.isEmpty() || imagePath.isEmpty()) {
+            Toast.makeText(this, "Harap lengkapi semua data", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean isUpdated = donationRepository.updateDonation(
+                nama, deskripsi, target, selectedStatus, imagePath
+        );
+
+        if (isUpdated) {
+            Toast.makeText(this, "Donasi berhasil diperbarui", Toast.LENGTH_SHORT).show();
+            finish();
+        } else {
+            Toast.makeText(this, "Gagal memperbarui donasi", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void chooseImage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_MEDIA_IMAGES},
-                        MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES);
-            } else {
-                openImagePicker();
+        String permission = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+        checkPermission(permission);
+    }
+
+    private void checkPermission(String permission) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                Toast.makeText(this, "Izin diperlukan untuk memilih gambar", Toast.LENGTH_SHORT).show();
             }
+            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_REQUEST_READ_IMAGES);
         } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES);
-            } else {
-                openImagePicker();
-            }
+            openImagePicker();
         }
     }
 
     private void openImagePicker() {
-        Intent intent = new Intent();
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Pilih Gambar"), PICK_IMAGE_REQUEST);
+        imagePickerLauncher.launch(Intent.createChooser(intent, "Pilih Gambar"));
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            Uri imageUri = data.getData();
-            gambarPath = saveImageToInternalStorage(imageUri);
-            if (gambarPath != null) {
-                imageViewDonasi.setImageURI(imageUri);
-                tvStatusGambar.setText("File dipilih: " + getFileName(imageUri));
-            } else {
-                Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
-            }
+    @SuppressLint("SetTextI18n")
+    private void handleSelectedImage(Uri uri) {
+        String imagePath = saveImageToInternalStorage(uri);
+        if (imagePath != null) {
+            imageViewDonasi.setImageURI(uri);
+            tvStatusGambar.setText(imagePath);
+            Log.d("EditDonasiActivity", "Image Path: " + imagePath);
+        } else {
+            Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private String getFileName(Uri uri) {
-        String result = null;
-        if ("content".equals(uri.getScheme())) {
-            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
-                }
-            }
-        }
-        if (result == null) {
-            result = uri.getPath();
-            int cut = result.lastIndexOf('/');
-            if (cut != -1) {
-                result = result.substring(cut + 1);
-            }
-        }
-        return result;
     }
 
     private String saveImageToInternalStorage(Uri uri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(uri);
-            File file = new File(getFilesDir(), getFileName(uri));
-            try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = inputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, length);
-                }
+        try (InputStream inputStream = getContentResolver().openInputStream(uri);
+             FileOutputStream outputStream = new FileOutputStream(new File(getFilesDir(), getFileName(uri)))) {
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = Objects.requireNonNull(inputStream).read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
             }
-            inputStream.close();
-            return file.getAbsolutePath();
+            return getFilesDir() + File.separator + getFileName(uri);
+
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("EditDonasiActivity", "Error", e);
             return null;
         }
     }
 
-    private void updateDonasi() {
-        String updatedNama = editNama.getText().toString();
-        String updatedDeskripsi = editDeskripsi.getText().toString();
-        int updatedTarget = Integer.parseInt(editTarget.getText().toString());
-
-        // Notifikasi simulasi pembaruan data
-        Toast.makeText(this, "Data berhasil diperbarui:\nNama: " + updatedNama + "\nDeskripsi: " + updatedDeskripsi + "\nTarget: Rp " + updatedTarget, Toast.LENGTH_SHORT).show();
-        finish();
+    private String getFileName(Uri uri) {
+        if (Objects.equals(uri.getScheme(), "content")) {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+        }
+        String path = uri.getPath();
+        return (path != null && path.lastIndexOf('/') != -1)
+                ? path.substring(path.lastIndexOf('/') + 1)
+                : "Unknown File";
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MY_PERMISSIONS_REQUEST_READ_MEDIA_IMAGES) {
+        if (requestCode == PERMISSION_REQUEST_READ_IMAGES) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openImagePicker();
             } else {

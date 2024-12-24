@@ -122,7 +122,7 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
         intent.putExtra("id", donation.getDonationId());
         intent.putExtra("nama", donation.getName());
         intent.putExtra("deskripsi", donation.getDescription());
-        intent.putExtra("kategori", donation.getCategoryId());
+        intent.putExtra("status", donation.getStatus());
         intent.putExtra("target", donation.getTarget());
         intent.putExtra("gambar", donation.getImage());
         context.startActivity(intent);

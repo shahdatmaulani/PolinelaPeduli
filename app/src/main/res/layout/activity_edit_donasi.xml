@@ -56,39 +56,16 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pilih Kategori:"
+            android:text="Pilih Status:"
             android:paddingTop="12dp"/>
 
-        <RadioGroup
-            android:id="@+id/radioGroupKategoriEdit"
+        <Spinner
+            android:id="@+id/spinnerStatusDonation"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <RadioButton
-                android:id="@+id/rbBencanaEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bencana" />
-
-            <RadioButton
-                android:id="@+id/rbPendidikanEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pendidikan" />
-
-            <RadioButton
-                android:id="@+id/rbKesehatanEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kesehatan" />
-
-            <RadioButton
-                android:id="@+id/rbKemanusiaanEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kemanusiaan" />
-
-        </RadioGroup>
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            android:background="@android:drawable/editbox_background" />
 
         <!-- ImageView untuk Menampilkan Gambar yang Dipilih -->
         <ImageView

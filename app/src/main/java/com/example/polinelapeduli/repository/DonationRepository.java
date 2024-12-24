@@ -126,31 +126,35 @@ public class DonationRepository {
     }
 
     /**
-     * Updates an existing donation.
+     * Updates an existing donation with a new status.
      *
-     * @param donation The updated donation object.
+     * @param name        The name of the donation.
+     * @param description The description of the donation.
+     * @param target      The target amount of the donation.
+     * @param status      The updated status of the donation.
+     * @param imagePath   The image path for the donation.
      * @return True if the update is successful, false otherwise.
      */
-    public boolean updateDonation(Donation donation) {
+    public boolean updateDonation(String name, String description, int target, String status, String imagePath) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
-            values.put(DatabaseHelper.COLUMN_NAME, donation.getName());
-            values.put(DatabaseHelper.COLUMN_DESCRIPTION, donation.getDescription());
-            values.put(DatabaseHelper.COLUMN_CATEGORY_ID, donation.getCategoryId());
-            values.put(DatabaseHelper.COLUMN_TARGET, donation.getTarget());
-            values.put(DatabaseHelper.COLUMN_IMAGE, donation.getImage());
-            values.put(DatabaseHelper.COLUMN_STATUS, donation.getStatus().toString());
-            values.put(DatabaseHelper.COLUMN_UPDATED_AT, donation.getUpdatedAt());
+            values.put(DatabaseHelper.COLUMN_NAME, name);
+            values.put(DatabaseHelper.COLUMN_DESCRIPTION, description);
+            values.put(DatabaseHelper.COLUMN_TARGET, target);
+            values.put(DatabaseHelper.COLUMN_IMAGE, imagePath);
+            values.put(DatabaseHelper.COLUMN_STATUS, status);
+            values.put(DatabaseHelper.COLUMN_UPDATED_AT, CurrentTime.getCurrentTime());
 
             int rowsAffected = database.update(DatabaseHelper.TABLE_DONATIONS, values,
-                    DatabaseHelper.COLUMN_DONATION_ID + " = ?",
-                    new String[]{String.valueOf(donation.getDonationId())});
+                    DatabaseHelper.COLUMN_NAME + " = ?",
+                    new String[]{name});
             return rowsAffected > 0;
         } catch (Exception e) {
-            Log.e(TAG, "Error updating donation with ID: " + donation.getDonationId(), e);
+            Log.e(TAG, "Error updating donation: ", e);
             return false;
         }
     }
+
 
     /**
      * Performs a soft delete on a donation.
