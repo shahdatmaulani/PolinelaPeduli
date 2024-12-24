@@ -131,11 +131,6 @@ public class TambahDonasiActivity extends AppCompatActivity {
     }
 
     private void saveDonation() {
-        if (tvStatusGambar.getText().toString().isEmpty()) {
-            Toast.makeText(this, "Harap pilih gambar terlebih dahulu", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String nama = InputValidator.getValidatedText(etNamaDonasi, "Nama donasi tidak boleh kosong");
         String deskripsi = InputValidator.getValidatedText(etDeskripsiDonasi, "Deskripsi donasi tidak boleh kosong");
         Integer target = InputValidator.getValidatedNumberWithMinValue(
@@ -148,7 +143,12 @@ public class TambahDonasiActivity extends AppCompatActivity {
         if (nama == null || deskripsi == null || target == null) return;
 
         Category selectedCategory = (Category) spinnerKategori.getSelectedItem();
+
         String imagePath = tvStatusGambar.getText().toString().trim();
+        if (imagePath.isEmpty() || imagePath.equalsIgnoreCase("No File Chosen")) {
+            Toast.makeText(this, "Harap pilih gambar terlebih dahulu", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Donation donation = createDonation(nama, deskripsi, target, imagePath, selectedCategory);
 
