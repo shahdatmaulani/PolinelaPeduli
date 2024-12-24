@@ -21,7 +21,12 @@ public class CategoryRepository {
         this.dbHelper = new DatabaseHelper(context);
     }
 
-    // Insert Category
+    /**
+     * Inserts a new category into the database.
+     *
+     * @param categoryName The name of the category to insert.
+     * @return True if insertion is successful, false otherwise.
+     */
     public boolean insertCategory(String categoryName) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
@@ -41,14 +46,16 @@ public class CategoryRepository {
         }
     }
 
-    // Get All Categories
+    /**
+     * Retrieves all categories from the database.
+     *
+     * @return A list of categories.
+     */
     public List<Category> getAllCategories() {
-        SQLiteDatabase database = dbHelper.getReadableDatabase();
         List<Category> categories = new ArrayList<>();
-        Cursor cursor = null;
-        try {
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_CATEGORIES;
-            cursor = database.rawQuery(query, null);
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_CATEGORIES;
+        try (SQLiteDatabase database = dbHelper.getReadableDatabase();
+             Cursor cursor = database.rawQuery(query, null)) {
 
             if (cursor.moveToFirst()) {
                 do {
@@ -59,43 +66,49 @@ public class CategoryRepository {
             }
         } catch (Exception e) {
             Log.e(TAG, "Error fetching categories: ", e);
-        } finally {
-            if (cursor != null) cursor.close();
-            database.close();
         }
         return categories;
     }
 
-    // Get Category by Id
+    /**
+     * Retrieves the name of a category by its ID.
+     *
+     * @param categoryId The ID of the category.
+     * @return The name of the category, or null if not found.
+     */
     public String getCategoryById(int categoryId) {
-        SQLiteDatabase database = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        String categoryName = null;
-        try {
-            String query = "SELECT " + DatabaseHelper.COLUMN_CATEGORY_NAME + " FROM " + DatabaseHelper.TABLE_CATEGORIES +
-                    " WHERE " + DatabaseHelper.COLUMN_CATEGORY_ID + " = ?";
-            cursor = database.rawQuery(query, new String[]{String.valueOf(categoryId)});
+        String query = "SELECT " + DatabaseHelper.COLUMN_CATEGORY_NAME +
+                " FROM " + DatabaseHelper.TABLE_CATEGORIES +
+                " WHERE " + DatabaseHelper.COLUMN_CATEGORY_ID + " = ?";
+        try (SQLiteDatabase database = dbHelper.getReadableDatabase();
+             Cursor cursor = database.rawQuery(query, new String[]{String.valueOf(categoryId)})) {
 
             if (cursor != null && cursor.moveToFirst()) {
-                categoryName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY_NAME));
+                return cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY_NAME));
             } else {
                 Log.w(TAG, "No category found with ID: " + categoryId);
+                return null;
             }
         } catch (Exception e) {
             Log.e(TAG, "Error fetching category by ID: ", e);
-        } finally {
-            if (cursor != null) cursor.close();
-            database.close();
+            return null;
         }
-        return categoryName;
     }
 
-    // Update Category
+    /**
+     * Updates an existing category in the database.
+     *
+     * @param categoryId      The ID of the category to update.
+     * @param newCategoryName The new name for the category.
+     * @return True if the update is successful, false otherwise.
+     */
     public boolean updateCategory(int categoryId, String newCategoryName) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_CATEGORY_NAME, newCategoryName);
-            int rowsAffected = database.update(DatabaseHelper.TABLE_CATEGORIES, values, DatabaseHelper.COLUMN_CATEGORY_ID + " = ?", new String[]{String.valueOf(categoryId)});
+            int rowsAffected = database.update(DatabaseHelper.TABLE_CATEGORIES, values,
+                    DatabaseHelper.COLUMN_CATEGORY_ID + " = ?",
+                    new String[]{String.valueOf(categoryId)});
 
             if (rowsAffected > 0) {
                 Log.i(TAG, "Category updated successfully: ID " + categoryId);
@@ -110,10 +123,17 @@ public class CategoryRepository {
         }
     }
 
-    // Delete Category
+    /**
+     * Deletes a category from the database.
+     *
+     * @param categoryId The ID of the category to delete.
+     * @return True if the deletion is successful, false otherwise.
+     */
     public boolean deleteCategory(int categoryId) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
-            int rowsAffected = database.delete(DatabaseHelper.TABLE_CATEGORIES, DatabaseHelper.COLUMN_CATEGORY_ID + " = ?", new String[]{String.valueOf(categoryId)});
+            int rowsAffected = database.delete(DatabaseHelper.TABLE_CATEGORIES,
+                    DatabaseHelper.COLUMN_CATEGORY_ID + " = ?",
+                    new String[]{String.valueOf(categoryId)});
 
             if (rowsAffected > 0) {
                 Log.i(TAG, "Category deleted successfully: ID " + categoryId);

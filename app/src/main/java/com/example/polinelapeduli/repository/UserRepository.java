@@ -26,6 +26,12 @@ public class UserRepository {
         this.dbHelper = new DatabaseHelper(context);
     }
 
+    /**
+     * Maps a Cursor to a User object.
+     *
+     * @param cursor The database cursor.
+     * @return The mapped User object.
+     */
     private User mapCursorToUser(Cursor cursor) {
         return new User(
                 cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_USER_ID)),
@@ -40,6 +46,12 @@ public class UserRepository {
         );
     }
 
+    /**
+     * Inserts a new user into the database.
+     *
+     * @param user The user object to insert.
+     * @return True if insertion is successful, false otherwise.
+     */
     public boolean insertUser(User user) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
@@ -60,12 +72,17 @@ public class UserRepository {
         }
     }
 
+    /**
+     * Retrieves a user by their ID.
+     *
+     * @param userId The ID of the user.
+     * @return The User object, or null if not found.
+     */
     public User getUserById(int userId) {
-        SQLiteDatabase database = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " + DatabaseHelper.COLUMN_USER_ID + " = ?";
-            cursor = database.rawQuery(query, new String[]{String.valueOf(userId)});
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " + DatabaseHelper.COLUMN_USER_ID + " = ?";
+        try (SQLiteDatabase database = dbHelper.getReadableDatabase();
+             Cursor cursor = database.rawQuery(query, new String[]{String.valueOf(userId)})) {
+
             if (cursor != null && cursor.moveToFirst()) {
                 return mapCursorToUser(cursor);
             } else {
@@ -75,18 +92,19 @@ public class UserRepository {
         } catch (Exception e) {
             Log.e(TAG, "Error fetching user with ID: " + userId, e);
             return null;
-        } finally {
-            if (cursor != null) cursor.close();
-            database.close();
         }
     }
 
+    /**
+     * Retrieves a user by their email address.
+     *
+     * @param email The email address of the user.
+     * @return The User object, or null if not found.
+     */
     public User getUserByEmail(String email) {
-        SQLiteDatabase database = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " + DatabaseHelper.COLUMN_EMAIL + " = ?";
-            cursor = database.rawQuery(query, new String[]{email});
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " + DatabaseHelper.COLUMN_EMAIL + " = ?";
+        try (SQLiteDatabase database = dbHelper.getReadableDatabase();
+             Cursor cursor = database.rawQuery(query, new String[]{email})) {
 
             if (cursor != null && cursor.moveToFirst()) {
                 return mapCursorToUser(cursor);
@@ -97,19 +115,19 @@ public class UserRepository {
         } catch (Exception e) {
             Log.e(TAG, "Error fetching user with email: " + email, e);
             return null;
-        } finally {
-            if (cursor != null) cursor.close();
-            database.close();
         }
     }
 
+    /**
+     * Retrieves all active users from the database.
+     *
+     * @return A list of active users.
+     */
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
-        SQLiteDatabase database = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " + DatabaseHelper.COLUMN_IS_ACTIVE + " = 1";
-            cursor = database.rawQuery(query, null);
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " + DatabaseHelper.COLUMN_IS_ACTIVE + " = 1";
+        try (SQLiteDatabase database = dbHelper.getReadableDatabase();
+             Cursor cursor = database.rawQuery(query, null)) {
 
             if (cursor.moveToFirst()) {
                 do {
@@ -120,13 +138,15 @@ public class UserRepository {
             }
         } catch (Exception e) {
             Log.e(TAG, "Error fetching all users: ", e);
-        } finally {
-            if (cursor != null) cursor.close();
-            database.close();
         }
         return userList;
     }
 
+    /**
+     * Updates an existing user in the database.
+     *
+     * @param user The updated user object.
+     */
     public void updateUser(User user) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
@@ -137,18 +157,28 @@ public class UserRepository {
             values.put(DatabaseHelper.COLUMN_IS_ACTIVE, user.isActive() ? 1 : 0);
             values.put(DatabaseHelper.COLUMN_UPDATED_AT, user.getUpdatedAt());
 
-            int rowsAffected = database.update(DatabaseHelper.TABLE_USERS, values, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{String.valueOf(user.getUserId())});
+            database.update(DatabaseHelper.TABLE_USERS, values,
+                    DatabaseHelper.COLUMN_USER_ID + " = ?",
+                    new String[]{String.valueOf(user.getUserId())});
         } catch (Exception e) {
             Log.e(TAG, "Error updating user with ID: " + user.getUserId(), e);
         }
     }
 
+    /**
+     * Performs a soft delete on a user.
+     *
+     * @param userId The ID of the user to delete.
+     * @return True if the deletion is successful, false otherwise.
+     */
     public boolean softDeleteUser(int userId) {
         try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
-            values.put(DatabaseHelper.COLUMN_IS_ACTIVE, 0); // Set isActive ke 0 (false)
+            values.put(DatabaseHelper.COLUMN_IS_ACTIVE, 0); // Set isActive to 0 (false)
 
-            int rowsAffected = database.update(DatabaseHelper.TABLE_USERS, values, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{String.valueOf(userId)});
+            int rowsAffected = database.update(DatabaseHelper.TABLE_USERS, values,
+                    DatabaseHelper.COLUMN_USER_ID + " = ?",
+                    new String[]{String.valueOf(userId)});
             return rowsAffected > 0;
         } catch (Exception e) {
             Log.e(TAG, "Error soft deleting user with ID: " + userId, e);
