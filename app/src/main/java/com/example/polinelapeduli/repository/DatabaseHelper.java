@@ -7,9 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.NonNull;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import com.example.polinelapeduli.utils.CurrentTime;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -131,9 +129,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         //Input Data Admin
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        String currentTime = dateFormat.format(new Date(System.currentTimeMillis()));
-        ContentValues adminValues = getContentValues(currentTime);
+        ContentValues adminValues = getContentValues(CurrentTime.getCurrentTime());
         db.insert(TABLE_USERS, null, adminValues);
 
     }

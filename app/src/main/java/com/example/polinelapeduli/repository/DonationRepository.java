@@ -17,23 +17,14 @@ public class DonationRepository {
 
     private static final String TAG = "DonationRepository";
     private final DatabaseHelper dbHelper;
-    private SQLiteDatabase database;
 
     public DonationRepository(Context context) {
         this.dbHelper = new DatabaseHelper(context);
     }
 
-    private void openDatabase() {
-        if (database == null || !database.isOpen()) {
-            database = dbHelper.getWritableDatabase();
-        }
-    }
-
     // Insert Donation
     public boolean insertDonation(Donation donation) {
-        openDatabase();
-        database.beginTransaction();
-        try {
+        try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_NAME, donation.getName());
             values.put(DatabaseHelper.COLUMN_DESCRIPTION, donation.getDescription());
@@ -46,25 +37,16 @@ public class DonationRepository {
             values.put(DatabaseHelper.COLUMN_UPDATED_AT, donation.getUpdatedAt());
 
             long result = database.insert(DatabaseHelper.TABLE_DONATIONS, null, values);
-            if (result != -1) {
-                database.setTransactionSuccessful();
-                Log.i(TAG, "Donation inserted successfully: " + donation);
-                return true;
-            } else {
-                Log.w(TAG, "Failed to insert donation.");
-                return false;
-            }
+            return result != -1;
         } catch (SQLException e) {
             Log.e(TAG, "Error inserting donation: ", e);
             return false;
-        } finally {
-            database.endTransaction();
         }
     }
 
     // Get All Donations
     public List<Donation> getAllDonations() {
-        openDatabase();
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
         List<Donation> donations = new ArrayList<>();
         Cursor cursor = null;
         try {
@@ -80,14 +62,14 @@ public class DonationRepository {
             Log.e(TAG, "Error fetching donations: ", e);
         } finally {
             if (cursor != null) cursor.close();
+            database.close();
         }
         return donations;
     }
 
-    // Get All Donations with Category (NEW)
-    // Get All Donations by Specific Category
+    // Get All Donations with Category
     public List<Donation> getAllDonationsWithCategory(String category) {
-        openDatabase();
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
         List<Donation> donations = new ArrayList<>();
         Cursor cursor = null;
         try {
@@ -108,14 +90,14 @@ public class DonationRepository {
             Log.e(TAG, "Error fetching donations by category: ", e);
         } finally {
             if (cursor != null) cursor.close();
+            database.close();
         }
         return donations;
     }
 
-
     // Get Donation by ID
     public Donation getDonationById(int donationId) {
-        openDatabase();
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
         Cursor cursor = null;
         try {
             String query = "SELECT * FROM " + DatabaseHelper.TABLE_DONATIONS + " WHERE " + DatabaseHelper.COLUMN_DONATION_ID + " = ?";
@@ -132,14 +114,13 @@ public class DonationRepository {
             return null;
         } finally {
             if (cursor != null) cursor.close();
+            database.close();
         }
     }
 
     // Update Donation
     public boolean updateDonation(Donation donation) {
-        openDatabase();
-        database.beginTransaction();
-        try {
+        try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_NAME, donation.getName());
             values.put(DatabaseHelper.COLUMN_DESCRIPTION, donation.getDescription());
@@ -150,44 +131,24 @@ public class DonationRepository {
             values.put(DatabaseHelper.COLUMN_UPDATED_AT, donation.getUpdatedAt());
 
             int rowsAffected = database.update(DatabaseHelper.TABLE_DONATIONS, values, DatabaseHelper.COLUMN_DONATION_ID + " = ?", new String[]{String.valueOf(donation.getDonationId())});
-            if (rowsAffected > 0) {
-                database.setTransactionSuccessful();
-                Log.i(TAG, "Donation updated successfully: ID " + donation);
-                return true;
-            } else {
-                Log.w(TAG, "No donation found with ID: " + donation.getDonationId());
-                return false;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
             Log.e(TAG, "Error updating donation with ID: " + donation.getDonationId(), e);
             return false;
-        } finally {
-            database.endTransaction();
         }
     }
 
     // Soft Delete Donation
     public boolean softDeleteDonation(int donationId) {
-        openDatabase();
-        database.beginTransaction();
-        try {
+        try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_IS_ACTIVE, 0);
 
             int rowsAffected = database.update(DatabaseHelper.TABLE_DONATIONS, values, DatabaseHelper.COLUMN_DONATION_ID + " = ?", new String[]{String.valueOf(donationId)});
-            if (rowsAffected > 0) {
-                database.setTransactionSuccessful();
-                Log.i(TAG, "Donation with ID " + donationId + " successfully soft deleted.");
-                return true;
-            } else {
-                Log.w(TAG, "No donation found with ID: " + donationId);
-                return false;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
             Log.e(TAG, "Error soft deleting donation with ID: " + donationId, e);
             return false;
-        } finally {
-            database.endTransaction();
         }
     }
 
@@ -207,15 +168,11 @@ public class DonationRepository {
         );
     }
 
-    // Helper: Map Cursor to Donation with Category (NEW)
+    // Helper: Map Cursor to Donation with Category
     private Donation mapCursorToDonationWithCategory(Cursor cursor) {
         Donation donation = mapCursorToDonation(cursor);
-
-        // Validasi nama kategori
         String categoryName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY_NAME));
         donation.setCategoryName(categoryName != null ? categoryName : "Kategori Tidak Ditemukan");
-
         return donation;
     }
-
 }

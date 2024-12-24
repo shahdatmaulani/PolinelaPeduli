@@ -16,29 +16,19 @@ public class CategoryRepository {
 
     private static final String TAG = "CategoryRepository";
     private final DatabaseHelper dbHelper;
-    private SQLiteDatabase database;
 
     public CategoryRepository(Context context) {
         this.dbHelper = new DatabaseHelper(context);
     }
 
-    private void openDatabase() {
-        if (database == null || !database.isOpen()) {
-            database = dbHelper.getWritableDatabase();
-        }
-    }
-
     // Insert Category
     public boolean insertCategory(String categoryName) {
-        openDatabase();
-        database.beginTransaction();
-        try {
+        try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_CATEGORY_NAME, categoryName);
             long result = database.insert(DatabaseHelper.TABLE_CATEGORIES, null, values);
 
             if (result != -1) {
-                database.setTransactionSuccessful();
                 Log.i(TAG, "Category inserted successfully: " + categoryName);
                 return true;
             } else {
@@ -48,14 +38,12 @@ public class CategoryRepository {
         } catch (SQLException e) {
             Log.e(TAG, "Error inserting category: ", e);
             return false;
-        } finally {
-            database.endTransaction();
         }
     }
 
     // Get All Categories
     public List<String> getAllCategories() {
-        openDatabase();
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
         List<String> categories = new ArrayList<>();
         Cursor cursor = null;
         try {
@@ -71,12 +59,13 @@ public class CategoryRepository {
             Log.e(TAG, "Error fetching categories: ", e);
         } finally {
             if (cursor != null) cursor.close();
+            database.close();
         }
         return categories;
     }
 
-    public List<Category> getAllCategoryObjects() {
-        openDatabase();
+    public List<Category> getAllCategory() {
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
         List<Category> categories = new ArrayList<>();
         Cursor cursor = null;
         try {
@@ -94,14 +83,14 @@ public class CategoryRepository {
             Log.e(TAG, "Error fetching categories: ", e);
         } finally {
             if (cursor != null) cursor.close();
+            database.close();
         }
         return categories;
     }
 
-
     // Get Category by Id
     public String getCategoryById(int categoryId) {
-        openDatabase();
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
         Cursor cursor = null;
         String categoryName = null;
         try {
@@ -118,21 +107,19 @@ public class CategoryRepository {
             Log.e(TAG, "Error fetching category by ID: ", e);
         } finally {
             if (cursor != null) cursor.close();
+            database.close();
         }
         return categoryName;
     }
 
     // Update Category
     public boolean updateCategory(int categoryId, String newCategoryName) {
-        openDatabase();
-        database.beginTransaction();
-        try {
+        try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_CATEGORY_NAME, newCategoryName);
             int rowsAffected = database.update(DatabaseHelper.TABLE_CATEGORIES, values, DatabaseHelper.COLUMN_CATEGORY_ID + " = ?", new String[]{String.valueOf(categoryId)});
 
             if (rowsAffected > 0) {
-                database.setTransactionSuccessful();
                 Log.i(TAG, "Category updated successfully: ID " + categoryId);
                 return true;
             } else {
@@ -142,20 +129,15 @@ public class CategoryRepository {
         } catch (Exception e) {
             Log.e(TAG, "Error updating category with ID: " + categoryId, e);
             return false;
-        } finally {
-            database.endTransaction();
         }
     }
 
     // Delete Category
     public boolean deleteCategory(int categoryId) {
-        openDatabase();
-        database.beginTransaction();
-        try {
+        try (SQLiteDatabase database = dbHelper.getWritableDatabase()) {
             int rowsAffected = database.delete(DatabaseHelper.TABLE_CATEGORIES, DatabaseHelper.COLUMN_CATEGORY_ID + " = ?", new String[]{String.valueOf(categoryId)});
 
             if (rowsAffected > 0) {
-                database.setTransactionSuccessful();
                 Log.i(TAG, "Category deleted successfully: ID " + categoryId);
                 return true;
             } else {
@@ -165,8 +147,6 @@ public class CategoryRepository {
         } catch (Exception e) {
             Log.e(TAG, "Error deleting category with ID: " + categoryId, e);
             return false;
-        } finally {
-            database.endTransaction();
         }
     }
 }

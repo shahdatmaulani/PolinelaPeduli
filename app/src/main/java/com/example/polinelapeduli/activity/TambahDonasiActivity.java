@@ -124,7 +124,7 @@ public class TambahDonasiActivity extends AppCompatActivity {
     }
 
     private void loadCategoriesIntoSpinner() {
-        List<Category> categoryList = categoryRepository.getAllCategoryObjects();
+        List<Category> categoryList = categoryRepository.getAllCategory();
         ArrayAdapter<Category> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerKategori.setAdapter(adapter);
