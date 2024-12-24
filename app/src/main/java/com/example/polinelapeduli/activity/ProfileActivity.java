@@ -39,9 +39,19 @@ public class ProfileActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         userRepository = new UserRepository(this);
 
-        // Cek apakah pengguna sudah login
+        // Cek apakah data pengguna ada, sudah login, dan aktif
         FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        // Pastikan pengguna sudah login
         if (firebaseUser == null) {
+            redirectToSignIn();
+            return;
+        }
+
+        // Ambil data pengguna berdasarkan email
+        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
+
+        // Pastikan data pengguna ditemukan dan pengguna aktif
+        if (userLogin == null || !userLogin.isActive()) {
             redirectToSignIn();
             return;
         }

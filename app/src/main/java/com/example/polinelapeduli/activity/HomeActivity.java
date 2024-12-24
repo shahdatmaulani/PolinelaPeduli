@@ -26,7 +26,7 @@ public class HomeActivity extends AppCompatActivity {
     private TextView headerWelcome;
     private EditText searchField;
     private BottomNavigationView bottomNavigationView;
-    private FirebaseUser currentUser;
+    private FirebaseUser firebaseUser;
     private LinearLayout kategoriBencana, kategoriPendidikan, kategoriKesehatan, kategoriKemanusiaan;
 
     @Override
@@ -34,15 +34,23 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Initialize Firebase
+        // Inisialisasi Firebase Auth dan UserRepository
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
+        userRepository = new UserRepository(this);
+        firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser == null) {
             redirectToLogin();
             return;
         }
 
-        userRepository = new UserRepository(this);
+        // Ambil data pengguna berdasarkan email
+        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
+
+        // Pastikan data pengguna ditemukan dan pengguna aktif
+        if (userLogin == null || !userLogin.isActive()) {
+            redirectToSignIn();
+            return;
+        }
 
         // View Initialization
         headerWelcome = findViewById(R.id.headerWelcome);
@@ -61,8 +69,14 @@ public class HomeActivity extends AppCompatActivity {
         setupBottomNavigation();
     }
 
+    private void redirectToSignIn() {
+        Intent intent = new Intent(HomeActivity.this, SignInActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     private void setupUserDetails() {
-        String email = currentUser.getEmail();
+        String email = firebaseUser.getEmail();
         User user = userRepository.getUserByEmail(email);
 
         if (user != null) {

@@ -85,7 +85,8 @@ public class DonationRepository {
     }
 
     // Get All Donations with Category (NEW)
-    public List<Donation> getAllDonationsWithCategory() {
+    // Get All Donations by Specific Category
+    public List<Donation> getAllDonationsWithCategory(String category) {
         openDatabase();
         List<Donation> donations = new ArrayList<>();
         Cursor cursor = null;
@@ -94,9 +95,9 @@ public class DonationRepository {
                     " FROM " + DatabaseHelper.TABLE_DONATIONS + " d" +
                     " LEFT JOIN " + DatabaseHelper.TABLE_CATEGORIES + " c" +
                     " ON d." + DatabaseHelper.COLUMN_CATEGORY_ID + " = c." + DatabaseHelper.COLUMN_CATEGORY_ID +
-                    " WHERE d." + DatabaseHelper.COLUMN_IS_ACTIVE + " = 1";
+                    " WHERE d." + DatabaseHelper.COLUMN_IS_ACTIVE + " = 1 AND c." + DatabaseHelper.COLUMN_CATEGORY_NAME + " = ?";
 
-            cursor = database.rawQuery(query, null);
+            cursor = database.rawQuery(query, new String[]{category});
 
             if (cursor.moveToFirst()) {
                 do {
@@ -104,12 +105,13 @@ public class DonationRepository {
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error fetching donations with category: ", e);
+            Log.e(TAG, "Error fetching donations by category: ", e);
         } finally {
             if (cursor != null) cursor.close();
         }
         return donations;
     }
+
 
     // Get Donation by ID
     public Donation getDonationById(int donationId) {
@@ -209,10 +211,11 @@ public class DonationRepository {
     private Donation mapCursorToDonationWithCategory(Cursor cursor) {
         Donation donation = mapCursorToDonation(cursor);
 
-        // Tambahkan nama kategori
+        // Validasi nama kategori
         String categoryName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY_NAME));
-        donation.setCategoryName(categoryName);
+        donation.setCategoryName(categoryName != null ? categoryName : "Kategori Tidak Ditemukan");
 
         return donation;
     }
+
 }

@@ -1,82 +1,144 @@
 package com.example.polinelapeduli.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.polinelapeduli.R;
-import com.example.polinelapeduli.model.Donasi;
+import com.example.polinelapeduli.model.Donation;
+import com.example.polinelapeduli.model.User;
+import com.example.polinelapeduli.repository.DonationRepository;
+import com.example.polinelapeduli.repository.UserRepository;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
 public class BencanaActivity extends AppCompatActivity {
 
     private ListView listView;
-    private ArrayList<Donasi> donasiList;
+    private ArrayList<Donation> donationList;
     private DonasiAdapter donasiAdapter;
+    private DonationRepository donationRepository;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bencana);
 
-        listView = findViewById(R.id.listView);
-        donasiList = new ArrayList<>();
+        // Inisialisasi Firebase Auth dan UserRepository
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        UserRepository userRepository = new UserRepository(this);
 
-        View headerView = getLayoutInflater().inflate(R.layout.activity_bencana_header, null);
+        // Cek apakah data pengguna ada, sudah login, dan aktif
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        // Pastikan pengguna sudah login
+        if (firebaseUser == null) {
+            redirectToSignIn();
+            return;
+        }
+
+        // Ambil data pengguna berdasarkan email
+        User userLogin = userRepository.getUserByEmail(firebaseUser.getEmail());
+
+        // Pastikan data pengguna ditemukan dan pengguna aktif
+        if (userLogin == null || !userLogin.isActive()) {
+            redirectToSignIn();
+            return;
+        }
+
+        // Inisialisasi komponen
+        listView = findViewById(R.id.listView);
+        donationList = new ArrayList<>();
+        donationRepository = new DonationRepository(this);
+
+        // Tambahkan header jika ada
+        @SuppressLint("InflateParams") View headerView = getLayoutInflater().inflate(R.layout.activity_bencana_header, null);
         listView.addHeaderView(headerView);
 
-        // Placeholder untuk data dummy
-        loadDonasiDummy(); // Data sementara untuk tampilan
+        // Muat data donasi berdasarkan kategori
+        loadDonationsByCategory();
 
+        // Set event long click pada ListView
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            if (position > 0) {
-                final Donasi selectedDonasi = donasiList.get(position - 1);
-                showOptionsDialog(selectedDonasi);
+            if (position > 0) { // Abaikan header
+                final Donation selectedDonation = donationList.get(position - 1);
+                showOptionsDialog(selectedDonation);
             }
             return true;
         });
     }
 
-    private void loadDonasiDummy() {
-        // Data dummy untuk mengisi tampilan
-        donasiList.clear();
-        donasiList.add(new Donasi(1, "Bencana Alam A", "Deskripsi bencana A", "Bencana", 1000000, "image_a", "email_a"));
-        donasiList.add(new Donasi(2, "Bencana Alam B", "Deskripsi bencana B", "Bencana", 2000000, "image_b", "email_b"));
+    // Metode untuk memuat data donasi berdasarkan kategori
+    private void loadDonationsByCategory() {
+        donationList.clear();
+        donationList.addAll(donationRepository.getAllDonationsWithCategory("Bencana"));
 
-        donasiAdapter = new DonasiAdapter(this, donasiList);
+        donasiAdapter = new DonasiAdapter(this, donationList);
         listView.setAdapter(donasiAdapter);
-        donasiAdapter.notifyDataSetChanged();
     }
 
-    private void showOptionsDialog(Donasi selectedDonasi) {
+    private void redirectToSignIn() {
+        Intent intent = new Intent(BencanaActivity.this, SignInActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    // Tampilkan dialog opsi edit atau hapus
+    private void showOptionsDialog(Donation selectedDonation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(BencanaActivity.this);
         builder.setTitle("Pilih Opsi");
         String[] options = {"Edit", "Hapus"};
         builder.setItems(options, (dialog, which) -> {
             if (which == 0) {
-                editDonasi(selectedDonasi);
+                editDonation(selectedDonation);
+            } else if (which == 1) {
+                deleteDonation(selectedDonation);
             }
         });
         builder.show();
     }
 
-    private void editDonasi(Donasi donasi) {
+    // Metode untuk mengedit donasi
+    private void editDonation(Donation donation) {
         Intent intent = new Intent(BencanaActivity.this, EditDonasiActivity.class);
-        intent.putExtra("id", donasi.getId());
-        intent.putExtra("nama", donasi.getNama());
-        intent.putExtra("deskripsi", donasi.getDeskripsi());
-        intent.putExtra("target", donasi.getTarget());
+        intent.putExtra("id", donation.getDonationId());
+        intent.putExtra("nama", donation.getName());
+        intent.putExtra("deskripsi", donation.getDescription());
+        intent.putExtra("target", donation.getTarget());
+        intent.putExtra("gambar", donation.getImage());
         startActivity(intent);
+    }
+
+    // Metode untuk menghapus donasi
+    private void deleteDonation(Donation donation) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(BencanaActivity.this);
+        builder.setTitle("Konfirmasi Hapus");
+        builder.setMessage("Apakah Anda yakin ingin menghapus donasi ini?");
+        builder.setPositiveButton("Ya", (dialog, which) -> {
+            boolean isDeleted = donationRepository.softDeleteDonation(donation.getDonationId());
+            if (isDeleted) {
+                donationList.remove(donation);
+                donasiAdapter.notifyDataSetChanged();
+                Toast.makeText(BencanaActivity.this, "Donasi berhasil dihapus.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(BencanaActivity.this, "Gagal menghapus donasi.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Tidak", null);
+        builder.show();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadDonasiDummy(); // Muat ulang data dummy ketika aktivitas dilanjutkan
+        loadDonationsByCategory(); // Refresh data saat kembali ke aktivitas
     }
 }

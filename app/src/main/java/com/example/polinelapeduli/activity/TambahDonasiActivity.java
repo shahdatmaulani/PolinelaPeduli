@@ -52,7 +52,6 @@ public class TambahDonasiActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DonationRepository donationRepository;
     private CategoryRepository categoryRepository;
-    private UserRepository userRepository;
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
@@ -63,11 +62,9 @@ public class TambahDonasiActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tambah_donasi);
 
-        // Inisialisasi Firebase Auth dan UserRepository
         mAuth = FirebaseAuth.getInstance();
-        userRepository = new UserRepository(this);
+        UserRepository userRepository = new UserRepository(this);
 
-        // Cek apakah pengguna sudah login
         FirebaseUser firebaseUser = mAuth.getCurrentUser();
         if (firebaseUser == null) {
             redirectToSignIn();
@@ -122,7 +119,7 @@ public class TambahDonasiActivity extends AppCompatActivity {
     }
 
     private void saveDonation() {
-        if (tvStatusGambar.getText().toString().equals("File belum dipilih")) {
+        if (tvStatusGambar.getText().toString().isEmpty()) {
             Toast.makeText(this, "Harap pilih gambar terlebih dahulu", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -139,7 +136,7 @@ public class TambahDonasiActivity extends AppCompatActivity {
         }
 
         Category selectedCategory = (Category) spinnerKategori.getSelectedItem();
-        String imagePath = tvStatusGambar.getText().toString().replace("File dipilih: ", "").trim();
+        String imagePath = tvStatusGambar.getText().toString().trim();
 
         Donation donation = createDonation(nama, deskripsi, target, imagePath, selectedCategory);
 
@@ -198,7 +195,8 @@ public class TambahDonasiActivity extends AppCompatActivity {
         String imagePath = saveImageToInternalStorage(uri);
         if (imagePath != null) {
             imageViewDonasi.setImageURI(uri);
-            tvStatusGambar.setText("File dipilih: " + getFileName(uri));
+            tvStatusGambar.setText(imagePath); // Simpan path lengkap di sini
+            Log.d("TambahDonasiActivity", "Image Path: " + imagePath); // Debug log
         } else {
             Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show();
         }

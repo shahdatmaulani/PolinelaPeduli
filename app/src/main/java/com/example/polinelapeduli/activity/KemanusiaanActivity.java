@@ -1,5 +1,6 @@
 package com.example.polinelapeduli.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -10,81 +11,94 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.polinelapeduli.R;
-import com.example.polinelapeduli.model.Donasi;
+import com.example.polinelapeduli.model.Donation;
+import com.example.polinelapeduli.repository.DonationRepository;
 
 import java.util.ArrayList;
 
 public class KemanusiaanActivity extends AppCompatActivity {
 
     private ListView listView;
-    private ArrayList<Donasi> donasiList;
+    private ArrayList<Donation> donationList;
     private DonasiAdapter donasiAdapter;
+    private DonationRepository donationRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kemanusiaan);
 
+        // Inisialisasi komponen
         listView = findViewById(R.id.listView);
-        donasiList = new ArrayList<>();
+        donationList = new ArrayList<>();
+        donationRepository = new DonationRepository(this);
 
-        View headerView = getLayoutInflater().inflate(R.layout.activity_kemanusiaan_header, null);
+        // Tambahkan header jika ada
+        @SuppressLint("InflateParams") View headerView = getLayoutInflater().inflate(R.layout.activity_kemanusiaan_header, null);
         listView.addHeaderView(headerView);
 
-        loadDonasiDummy();
+        // Muat data donasi berdasarkan kategori
+        loadDonationsByCategory();
 
         // Set event long click pada ListView
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            if (position > 0) {
-                final Donasi selectedDonasi = donasiList.get(position - 1);
-                showOptionsDialog(selectedDonasi);
+            if (position > 0) { // Abaikan header
+                final Donation selectedDonation = donationList.get(position - 1);
+                showOptionsDialog(selectedDonation);
             }
             return true;
         });
     }
 
-    private void loadDonasiDummy() {
-        // Data dummy untuk mengisi tampilan
-        donasiList.clear();
-        donasiList.add(new Donasi(1, "Donasi Kemanusiaan A", "Deskripsi donasi A", "Kemanusiaan", 500000, "image_a", "email@example.com"));
-        donasiList.add(new Donasi(2, "Donasi Kemanusiaan B", "Deskripsi donasi B", "Kemanusiaan", 1000000, "image_b", "email@example.com"));
+    // Metode untuk memuat data donasi berdasarkan kategori
+    private void loadDonationsByCategory() {
+        donationList.clear();
+        donationList.addAll(donationRepository.getAllDonationsWithCategory("Kemanusiaan"));
 
-        donasiAdapter = new DonasiAdapter(this, donasiList);
+        donasiAdapter = new DonasiAdapter(this, donationList);
         listView.setAdapter(donasiAdapter);
     }
 
-    private void showOptionsDialog(Donasi selectedDonasi) {
+    // Tampilkan dialog opsi edit atau hapus
+    private void showOptionsDialog(Donation selectedDonation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(KemanusiaanActivity.this);
         builder.setTitle("Pilih Opsi");
         String[] options = {"Edit", "Hapus"};
         builder.setItems(options, (dialog, which) -> {
             if (which == 0) {
-                editDonasi(selectedDonasi);
+                editDonation(selectedDonation);
             } else if (which == 1) {
-                hapusDonasi(selectedDonasi);
+                deleteDonation(selectedDonation);
             }
         });
         builder.show();
     }
 
-    private void editDonasi(Donasi donasi) {
+    // Metode untuk mengedit donasi
+    private void editDonation(Donation donation) {
         Intent intent = new Intent(KemanusiaanActivity.this, EditDonasiActivity.class);
-        intent.putExtra("id", donasi.getId());
-        intent.putExtra("nama", donasi.getNama());
-        intent.putExtra("deskripsi", donasi.getDeskripsi());
-        intent.putExtra("target", donasi.getTarget());
+        intent.putExtra("id", donation.getDonationId());
+        intent.putExtra("nama", donation.getName());
+        intent.putExtra("deskripsi", donation.getDescription());
+        intent.putExtra("target", donation.getTarget());
+        intent.putExtra("gambar", donation.getImage());
         startActivity(intent);
     }
 
-    private void hapusDonasi(Donasi donasi) {
+    // Metode untuk menghapus donasi
+    private void deleteDonation(Donation donation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(KemanusiaanActivity.this);
         builder.setTitle("Konfirmasi Hapus");
         builder.setMessage("Apakah Anda yakin ingin menghapus donasi ini?");
         builder.setPositiveButton("Ya", (dialog, which) -> {
-            // Hapus data dari list dummy
-            donasiList.remove(donasi);
-            donasiAdapter.notifyDataSetChanged();
-            Toast.makeText(KemanusiaanActivity.this, "Donasi berhasil dihapus (simulasi)", Toast.LENGTH_SHORT).show();
+            boolean isDeleted = donationRepository.softDeleteDonation(donation.getDonationId());
+            if (isDeleted) {
+                donationList.remove(donation);
+                donasiAdapter.notifyDataSetChanged();
+                Toast.makeText(KemanusiaanActivity.this, "Donasi berhasil dihapus.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(KemanusiaanActivity.this, "Gagal menghapus donasi.", Toast.LENGTH_SHORT).show();
+            }
         });
         builder.setNegativeButton("Tidak", null);
         builder.show();
@@ -93,6 +107,6 @@ public class KemanusiaanActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadDonasiDummy(); // Muat ulang data dummy ketika aktivitas dilanjutkan
+        loadDonationsByCategory(); // Refresh data saat kembali ke aktivitas
     }
 }

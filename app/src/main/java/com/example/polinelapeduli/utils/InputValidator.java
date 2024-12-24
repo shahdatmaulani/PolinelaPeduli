@@ -3,7 +3,6 @@ package com.example.polinelapeduli.utils;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.widget.EditText;
-import android.widget.Spinner;
 
 public class InputValidator {
 
@@ -37,15 +36,6 @@ public class InputValidator {
             return null;
         }
         return email;
-    }
-
-    public static boolean validateSpinnerSelection(Spinner spinner, String errorMessage) {
-        String selectedItem = spinner.getSelectedItem().toString();
-        if (TextUtils.isEmpty(selectedItem) || selectedItem.equalsIgnoreCase("Tidak ada kategori tersedia")) {
-            spinner.requestFocus();
-            return false;
-        }
-        return true;
     }
 
     public static boolean validatePassword(EditText editText) {
