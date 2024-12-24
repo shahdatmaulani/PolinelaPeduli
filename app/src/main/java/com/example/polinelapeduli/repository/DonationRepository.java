@@ -73,7 +73,7 @@ public class DonationRepository {
         List<Donation> donations = new ArrayList<>();
         Cursor cursor = null;
         try {
-            String query = "SELECT d.*, c." + DatabaseHelper.COLUMN_CATEGORY_NAME +
+            String query = "SELECT d.*, c." + DatabaseHelper.COLUMN_CATEGORY_NAME + " AS category_name " +
                     " FROM " + DatabaseHelper.TABLE_DONATIONS + " d" +
                     " LEFT JOIN " + DatabaseHelper.TABLE_CATEGORIES + " c" +
                     " ON d." + DatabaseHelper.COLUMN_CATEGORY_ID + " = c." + DatabaseHelper.COLUMN_CATEGORY_ID +
@@ -171,8 +171,8 @@ public class DonationRepository {
     // Helper: Map Cursor to Donation with Category
     private Donation mapCursorToDonationWithCategory(Cursor cursor) {
         Donation donation = mapCursorToDonation(cursor);
-        String categoryName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY_NAME));
-        donation.setCategoryName(categoryName != null ? categoryName : "Kategori Tidak Ditemukan");
+        String categoryName = cursor.getString(cursor.getColumnIndexOrThrow("category_name"));
+        donation.setCategoryName(categoryName);
         return donation;
     }
 }

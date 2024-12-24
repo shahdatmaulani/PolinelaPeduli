@@ -42,29 +42,7 @@ public class CategoryRepository {
     }
 
     // Get All Categories
-    public List<String> getAllCategories() {
-        SQLiteDatabase database = dbHelper.getReadableDatabase();
-        List<String> categories = new ArrayList<>();
-        Cursor cursor = null;
-        try {
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_CATEGORIES;
-            cursor = database.rawQuery(query, null);
-
-            if (cursor.moveToFirst()) {
-                do {
-                    categories.add(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY_NAME)));
-                } while (cursor.moveToNext());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error fetching categories: ", e);
-        } finally {
-            if (cursor != null) cursor.close();
-            database.close();
-        }
-        return categories;
-    }
-
-    public List<Category> getAllCategory() {
+    public List<Category> getAllCategories() {
         SQLiteDatabase database = dbHelper.getReadableDatabase();
         List<Category> categories = new ArrayList<>();
         Cursor cursor = null;

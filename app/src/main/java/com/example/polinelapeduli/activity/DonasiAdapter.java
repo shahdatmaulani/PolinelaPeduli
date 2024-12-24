@@ -2,6 +2,7 @@ package com.example.polinelapeduli.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,6 +59,7 @@ public class DonasiAdapter extends ArrayAdapter<Donation> {
         EditText etJumlahDonasi = convertView.findViewById(R.id.etJumlahDonasi);
 
         if (donation != null) {
+            Log.d("DonasiAdapter", "Setting data for position " + position + ": " + donation.toString());
             // Set data ke UI
             tvNamaDonasi.setText(donation.getName());
             tvDeskripsiDonasi.setText(donation.getDescription());
